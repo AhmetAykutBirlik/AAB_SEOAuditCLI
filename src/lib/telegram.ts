@@ -9,6 +9,7 @@ interface TelegramReportData {
     warnings: number;
     clientIp: string;
     email?: string;
+    healthLevel?: string;
 }
 
 export async function sendTelegramReport(data: TelegramReportData): Promise<void> {
@@ -23,28 +24,26 @@ export async function sendTelegramReport(data: TelegramReportData): Promise<void
     try {
         const bot = new Telegraf(token);
 
-        let healthLevel = "High Potential";
-        if (data.avgScore < 60) healthLevel = "Critical";
-        else if (data.avgScore < 80) healthLevel = "Needs Optimization";
+        const health = data.healthLevel || (data.avgScore < 60 ? "Critical" : data.avgScore < 80 ? "Needs Optimization" : "High Potential");
 
         const text = `
-🔥 *WebFine SEO Lead*
+🔥 WebFine SEO Lead
 
-🌐 *Domain:* \`${data.domain}\`
-📧 *Email:* \`${data.email}\`
+🌐 Domain: ${data.domain}
+📧 Email: ${data.email}
 
-📊 *Score:* ${data.avgScore}/100
-❌ *Errors:* ${data.errors}
-⚠ *Warnings:* ${data.warnings}
-📄 *Pages:* ${data.pagesAudited}
-⏱ *Duration:* ${data.durationMs}ms
+📊 Score: ${data.avgScore}/100
+❌ Errors: ${data.errors}
+⚠ Warnings: ${data.warnings}
+📄 Pages: ${data.pagesAudited}
+⏱ Duration: ${data.durationMs}ms
 
-Health: *${healthLevel}*
+Health: ${health}
 
 #WebFine
 `.trim();
 
-        await bot.telegram.sendMessage(chatId, text, { parse_mode: 'Markdown' });
+        await bot.telegram.sendMessage(chatId, text);
     } catch (err) {
         console.error('Failed to send Telegram message:', err);
     }

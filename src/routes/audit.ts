@@ -1,6 +1,5 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { v4 as uuidv4 } from 'uuid';
 import { verifyTurnstile, checkSSRF } from '../lib/security';
 import { Crawler } from '../lib/crawler';
 import { sendTelegramReport } from '../lib/telegram';
@@ -15,28 +14,20 @@ const AuditSchema = z.object({
 });
 
 const LeadSchema = z.object({
-    requestId: z.string().uuid(),
     email: z.string().email(),
     lang: z.enum(['tr', 'en']).default('en'),
+    site: z.string(),
+    score: z.number(),
+    errors: z.number(),
+    warnings: z.number(),
+    pagesAudited: z.number(),
+    durationMs: z.number(),
+    healthLevel: z.string()
 });
-
-interface AuditSession {
-    site: string;
-    score: number;
-    errors: number;
-    warnings: number;
-    pagesAudited: number;
-    durationMs: number;
-    timestamp: number;
-    ip: string;
-}
-
-// Temporary in-memory store for sessions to handle /lead call (In production, use Redis/DB)
-const sessionStore = new Map<string, AuditSession>();
 
 const DISPOSABLE_DOMAINS = [
     'mailinator.com', '10minutemail.com', 'temp-mail.org', 'yopmail.com',
-    'guerrillamail.com', 'guerrillamail.net', 'guerrillamail.org'
+    'guerrillamail.com', 'guerrillamail.net', 'guerrillamail.org', 'yopmail.net', 'temp-mail.io'
 ];
 
 function isDisposableEmail(email: string): boolean {
@@ -76,7 +67,6 @@ export async function auditRoutes(fastify: FastifyInstance) {
             }
         }
     }, async (req, reply) => {
-        const requestId = uuidv4();
         try {
             const body = AuditSchema.parse(req.body);
             const ip = req.ip;
@@ -85,15 +75,15 @@ export async function auditRoutes(fastify: FastifyInstance) {
             await verifyTurnstile(body.turnstileToken, ip, body.lang);
 
             // 2. SSRF Check & Get Safe IP
-            const safeIp = await checkSSRF(body.url, body.lang);
+            await checkSSRF(body.url, body.lang);
 
-            // 3. Start Audit
+            // 3. Start Quick Audit (v4.1 Defaults)
             const crawler = new Crawler({
-                maxDepth: 2,
-                maxPages: 50,
-                concurrency: 3,
-                timeoutMs: 15000,
-                maxHtmlSize: 5 * 1024 * 1024, // 5MB
+                maxDepth: 1,      // Requirement: maxDepth 1
+                maxPages: 8,      // Requirement: maxPages 8
+                concurrency: 2,   // Requirement: concurrency 2
+                timeoutMs: 9000,  // Requirement: timeoutPerPageMs 9000
+                maxHtmlSize: 2000000, // Requirement: maxHtmlBytes 2000000
             });
 
             const results = await crawler.start(body.url);
@@ -101,32 +91,14 @@ export async function auditRoutes(fastify: FastifyInstance) {
             const totalScore = Math.round(results.reduce((acc, r) => acc + r.score, 0) / (results.length || 1));
             const totalErrors = results.reduce((acc, r) => acc + r.issues.filter(i => i.type === 'error').length, 0);
             const totalWarnings = results.reduce((acc, r) => acc + r.issues.filter(i => i.type === 'warning').length, 0);
+            const totalDuration = results.reduce((a, b) => a + b.durationMs, 0);
+            const site = new URL(body.url).hostname;
 
-            const session: AuditSession = {
-                site: new URL(body.url).hostname,
-                score: totalScore,
-                errors: totalErrors,
-                warnings: totalWarnings,
-                pagesAudited: results.length,
-                durationMs: results.reduce((a, b) => a + b.durationMs, 0),
-                timestamp: Date.now(),
-                ip
-            };
-
-            sessionStore.set(requestId, session);
-
-            // Cleanup old sessions (basic)
-            if (sessionStore.size > 1000) {
-                const firstKey = sessionStore.keys().next().value;
-                if (firstKey) sessionStore.delete(firstKey);
-            }
-
-            logAudit({ requestId, site: session.site, score: totalScore, duration: session.durationMs, ip });
+            logAudit({ site, score: totalScore, duration: totalDuration, ip });
 
             return {
                 success: true,
-                requestId,
-                site: session.site,
+                site,
                 score: totalScore,
                 healthLevel: getHealthLevel(totalScore),
                 summary: {
@@ -135,11 +107,11 @@ export async function auditRoutes(fastify: FastifyInstance) {
                     info: results.reduce((acc, r) => acc + r.issues.filter(i => i.type === 'info').length, 0)
                 },
                 pagesAudited: results.length,
-                durationMs: session.durationMs,
+                durationMs: totalDuration,
                 preview: {
                     topIssues: results.flatMap(r => r.issues).filter(i => i.type === 'error').slice(0, 5)
                 },
-                report: results // Full report included but frontend shows preview first
+                report: results // Full report sent to client, client handles gate
             };
 
         } catch (err: any) {
@@ -162,30 +134,25 @@ export async function auditRoutes(fastify: FastifyInstance) {
         try {
             const body = LeadSchema.parse(req.body);
 
-            // Email validation v4
+            // Email validation v4.1
             const cleanEmail = body.email.trim();
             if (cleanEmail.length > 100) throw new Error('Email too long');
             if (isDisposableEmail(cleanEmail)) throw new Error('Please use a permanent email address');
 
-            const session = sessionStore.get(body.requestId);
-
-            if (!session) {
-                return reply.status(404).send({ success: false, message: 'Session expired or not found' });
-            }
-
-            // Send Telegram Notification
+            // Send Telegram Notification (All data provided by client)
             sendTelegramReport({
-                domain: session.site,
-                pagesAudited: session.pagesAudited,
-                avgScore: session.score,
-                durationMs: session.durationMs,
-                errors: session.errors,
-                warnings: session.warnings,
-                clientIp: session.ip,
-                email: cleanEmail
+                domain: body.site,
+                pagesAudited: body.pagesAudited,
+                avgScore: body.score,
+                durationMs: body.durationMs,
+                errors: body.errors,
+                warnings: body.warnings,
+                clientIp: req.ip,
+                email: cleanEmail,
+                healthLevel: body.healthLevel
             }).catch(e => fastify.log.error(e));
 
-            logAudit({ requestId: body.requestId, email: cleanEmail, action: 'lead_captured' });
+            logAudit({ site: body.site, email: cleanEmail, action: 'lead_captured' });
 
             return {
                 success: true,
@@ -199,7 +166,7 @@ export async function auditRoutes(fastify: FastifyInstance) {
     });
 
     fastify.get('/health', async () => {
-        return { status: 'ok', version: '4.0.0', timestamp: new Date().toISOString() };
+        return { status: 'ok', version: '4.1.0', timestamp: new Date().toISOString() };
     });
 }
 

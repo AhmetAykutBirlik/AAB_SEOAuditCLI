@@ -250,8 +250,8 @@
                             </div>
                             <h3 class="text-3xl font-black leading-tight text-slate-900 mb-2" id="t-popup-title">Detaylı
                                 SEO Raporunuz Hazır</h3>
-                            <p class="text-sm text-slate-500 mb-8" id="t-popup-desc">Yapay zeka analizimiz tamamlandı.
-                                Raporun tamamını görüntülemek için e-posta adresinizi doğrulayın.</p>
+                            <p class="text-sm text-slate-500 mb-8" id="t-popup-desc">Hızlı ön analiz tamamlandı. Detaylı
+                                teknik raporu görüntülemek için e-posta adresinizi girin.</p>
 
                             <form id="leadForm" onsubmit="handleAudit(event)">
                                 <div class="relative rounded-md shadow-sm mb-4">
@@ -266,8 +266,8 @@
                                     <button type="submit" id="t-popup-primary"
                                         class="w-full rounded-xl bg-blue-600 px-3 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 active:scale-[0.98]">Sonuçları
                                         Göster</button>
-                                    <button type="button" onclick="closeModal()" id="t-popup-secondary"
-                                        class="w-full rounded-xl bg-white px-3 py-3.5 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-colors">Vazgeç</button>
+                                    <p class="text-[10px] text-slate-400 mt-2 text-center" id="t-trust-line">Ücretsiz
+                                        analiz • Spam yok • WebFine güvencesi</p>
                                 </div>
                             </form>
                         </div>
@@ -328,7 +328,7 @@
                 issues_label: 'İyileştirme Önerisi',
                 details_label: 'Sayfa Detayları',
                 popup_title: 'Detaylı SEO Raporunuz Hazır',
-                popup_desc: 'Yapay zeka analizimiz tamamlandı. Detaylı teknik raporu görüntülemek için e-posta adresinizi girin.',
+                popup_desc: 'Hızlı ön analiz tamamlandı. Detaylı teknik raporu görüntülemek için e-posta adresinizi girin.',
                 popup_primary: '🚀 Detaylı Raporu Aç',
                 trust_line: 'Ücretsiz analiz • Spam yok • WebFine güvencesi',
                 badge_critical: 'ÖNEMLİ',
@@ -338,7 +338,15 @@
                 support_btn: 'Teklif Al',
                 analyzing: 'Analiz Ediliyor...',
                 saving: 'Doğrulanıyor...',
-                not_found: 'Harika! Ciddi bir sorun tespit edilemedi. 🎉'
+                not_found: 'Harika! Ciddi bir sorun tespit edilemedi. 🎉',
+                loading_messages: [
+                    "🧠 Yapay zeka site yapınızı analiz ediyor...",
+                    "🔍 Meta etiketleri ve başlık yapısı inceleniyor...",
+                    "⚙️ Teknik SEO hataları tespit ediliyor...",
+                    "📊 Performans ve hız metrikleri ölçülüyor...",
+                    "🛠 İndeksleme ve yönlendirmeler kontrol ediliyor...",
+                    "🚀 Detaylı rapor oluşturuluyor..."
+                ]
             },
             en: {
                 hero_title: 'Discover the <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">True Power</span> of Your Website',
@@ -350,7 +358,7 @@
                 issues_label: 'Improvements',
                 details_label: 'Page Details',
                 popup_title: 'Detailed SEO Report Ready',
-                popup_desc: 'AI analysis completed. Enter your email address to view the detailed technical report.',
+                popup_desc: 'Quick preliminary analysis completed. Enter your email to view the detailed technical report.',
                 popup_primary: '🚀 Unlock Detailed Report',
                 trust_line: 'Free Analysis • No Spam • Powered by WebFine',
                 badge_critical: 'IMPORTANT',
@@ -360,12 +368,19 @@
                 support_btn: 'Get a Quote',
                 analyzing: 'Analyzing...',
                 saving: 'Verifying...',
-                not_found: 'Great! No serious issues were detected. 🎉'
+                not_found: 'Great! No serious issues were detected. 🎉',
+                loading_messages: [
+                    "🧠 AI is analyzing your site structure...",
+                    "🔍 Checking meta tags and heading structure...",
+                    "⚙️ Detecting technical SEO issues...",
+                    "📊 Measuring performance and speed metrics...",
+                    "🛠 Verifying indexing and redirects...",
+                    "🚀 Generating detailed report..."
+                ]
             }
         };
 
         let currentLang = 'tr';
-        let currentRequestId = null;
         let fullReportData = null;
         let isLeadCaptured = false;
 
@@ -410,6 +425,7 @@
             }
         });
 
+        let loadingInterval;
         async function openModal(e) {
             e.preventDefault();
             const url = document.getElementById('urlInput').value;
@@ -417,7 +433,29 @@
             const originalBtnText = submitBtn.innerHTML;
 
             submitBtn.disabled = true;
-            submitBtn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white inline-block mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ${translations[currentLang].analyzing}`;
+
+            // Start dynamic loading messages
+            let msgIndex = 0;
+            const msgs = translations[currentLang].loading_messages;
+
+            const updateBtnLoading = () => {
+                submitBtn.innerHTML = `
+                    <div class="flex flex-col items-center justify-center gap-1">
+                        <div class="flex items-center gap-3">
+                            <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span class="text-sm font-medium animate-pulse">${msgs[msgIndex]}</span>
+                        </div>
+                        <span class="text-[10px] opacity-60 font-bold uppercase tracking-widest">${currentLang === 'tr' ? 'Hızlı Ön Analiz (8 Sayfa)' : 'Quick Audit (8 Pages)'}</span>
+                    </div>
+                `;
+                msgIndex = (msgIndex + 1) % msgs.length;
+            };
+
+            updateBtnLoading();
+            loadingInterval = setInterval(updateBtnLoading, 2800);
 
             try {
                 const res = await fetch('/api/audit', {
@@ -429,7 +467,6 @@
                 const data = await res.json();
                 if (!data.success) throw new Error(data.message || 'Hata');
 
-                currentRequestId = data.requestId;
                 fullReportData = data;
                 isLeadCaptured = false;
 
@@ -447,6 +484,7 @@
             } catch (err) {
                 alert(err.message);
             } finally {
+                clearInterval(loadingInterval);
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
             }
@@ -466,7 +504,17 @@
                 const res = await fetch('/api/lead', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ requestId: currentRequestId, email, lang: currentLang })
+                    body: JSON.stringify({
+                        email,
+                        lang: currentLang,
+                        site: fullReportData.site,
+                        score: fullReportData.score,
+                        errors: fullReportData.summary.errors,
+                        warnings: fullReportData.summary.warnings,
+                        pagesAudited: fullReportData.pagesAudited,
+                        durationMs: fullReportData.durationMs,
+                        healthLevel: fullReportData.healthLevel
+                    })
                 });
 
                 const data = await res.json();

@@ -40,7 +40,7 @@ server.register(async (instance) => {
 const start = async () => {
     try {
         await server.listen({ port: PORT, host: '0.0.0.0' });
-        console.log(`🚀 AAB SEO Audit API v4.0.0 listening on port ${PORT}`);
+        console.log(`🚀 AAB SEO Audit API v4.1.0 listening on port ${PORT}`);
     } catch (err) {
         server.log.error(err);
         process.exit(1);

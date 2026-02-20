@@ -67,9 +67,10 @@ export class Crawler {
         const running = new Set<Promise<void>>();
 
         while (this.queue.length > 0 || running.size > 0) {
-            // Check limits
+            // Check limits (Strict 30s for v4.1 Quick Mode)
+            const elapsed = Date.now() - this.startTime;
             if (this.results.length >= this.options.maxPages) break;
-            if (Date.now() - this.startTime > this.totalCrawlTimeout) break;
+            if (elapsed > 30000) break; // Hard cap at 30s
 
             while (running.size < this.options.concurrency && this.queue.length > 0) {
                 const item = this.queue.shift();
@@ -97,14 +98,26 @@ export class Crawler {
         let score = 100;
 
         try {
+            // Head request check for content-type (Skip non-HTML)
+            const head = await axios.head(url, {
+                headers: { 'User-Agent': USER_AGENT },
+                timeout: 5000,
+                httpsAgent: httpsAgent,
+                validateStatus: () => true
+            });
+
+            const contentType = head.headers['content-type'] || '';
+            if (!contentType.includes('text/html')) {
+                return; // Skip non-HTML
+            }
+
             const res = await axios.get(url, {
                 headers: { 'User-Agent': USER_AGENT },
                 timeout: this.options.timeoutMs,
                 maxContentLength: this.options.maxHtmlSize,
                 validateStatus: () => true,
                 httpsAgent: httpsAgent,
-                // Use a stream or check headers for size before downloading fully if possible, 
-                // but axios maxContentLength handles this well for basic cases.
+                maxRedirects: 5, // Requirement: Max 5 redirects
             });
 
             const html = res.data;
@@ -155,7 +168,8 @@ export class Crawler {
             const images = $('img');
             let missingAlt = 0;
             images.each((_, el) => {
-                if (!$(el).attr('alt')) missingAlt++;
+                const alt = $(el).attr('alt');
+                if (alt === undefined || alt.trim() === '') missingAlt++;
             });
             if (missingAlt > 0) {
                 issues.push({ type: 'warning', message: `${missingAlt} images missing alt attributes`, points: Math.min(10, missingAlt * 2) });
@@ -169,16 +183,23 @@ export class Crawler {
                 issues.push({ type: 'warning', message: `Large HTML size: ${htmlSizeKb.toFixed(1)}KB`, points: 2 });
             }
 
-            // 5. Links & Discovery
+            // 5. Links & Discovery (Strict same-origin crawl)
             let internalLinks = 0;
             let externalLinks = 0;
+            const trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'fbclid', 'gclid', '_ga', '_gl'];
+
             $('a').each((_, el) => {
                 const href = $(el).attr('href');
                 if (!href) return;
 
                 try {
-                    const absolute = new URL(href, url).href;
-                    const isInternal = new URL(absolute).hostname === this.domain;
+                    const urlObj = new URL(href, url);
+
+                    // Strip tracking parameters
+                    trackingParams.forEach(p => urlObj.searchParams.delete(p));
+                    const absolute = urlObj.origin + urlObj.pathname + urlObj.search;
+
+                    const isInternal = urlObj.hostname === this.domain;
 
                     if (isInternal) {
                         internalLinks++;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Turnstile from 'react-turnstile';
+import SeoLoadingStatus from '../../../src/components/SeoLoadingStatus';
 
 const API_BASE = process.env.NEXT_PUBLIC_SEO_AUDIT_API_BASE || 'https://api.webfine.com.tr';
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
@@ -14,6 +15,13 @@ export default function SeoAuditWidget() {
 
     const handleAudit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // URL Validation
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            setError(lang === 'tr' ? 'URL http:// veya https:// ile başlamalıdır.' : 'URL must start with http:// or https://');
+            return;
+        }
+
         if (!token) {
             setError(lang === 'tr' ? 'Lütfen doğrulamayı tamamlayın.' : 'Please complete verification.');
             return;
@@ -24,12 +32,12 @@ export default function SeoAuditWidget() {
         setResult(null);
 
         try {
-            const res = await fetch(`${API_BASE}/audit`, {
-                method: 'POST', // Corrected method
+            const res = await fetch(`${API_BASE}/api/audit`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ url, token, lang }),
+                body: JSON.stringify({ url, turnstileToken: token, lang }),
             });
 
             const data = await res.json();
@@ -37,8 +45,7 @@ export default function SeoAuditWidget() {
             if (!data.success) {
                 throw new Error(data.message || 'Error');
             }
-            setResult(data.data);
-            // Reset logic would go here if needed
+            setResult(data);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -69,10 +76,11 @@ export default function SeoAuditWidget() {
                     <input
                         type="url"
                         required
+                        disabled={loading}
                         placeholder="https://example.com"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 bg-white"
+                        className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 bg-white disabled:opacity-50"
                     />
                 </div>
 
@@ -87,11 +95,18 @@ export default function SeoAuditWidget() {
                 <button
                     type="submit"
                     disabled={loading || !token}
-                    className="w-full py-2 px-4 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                    className="w-full min-h-[58px] px-4 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 disabled:opacity-100 transition-all shadow-sm flex items-center justify-center py-2"
                 >
-                    {loading
-                        ? (lang === 'tr' ? 'Analiz Ediliyor...' : 'Auditing...')
-                        : (lang === 'tr' ? 'Analiz Et' : 'Audit Now')}
+                    {loading ? (
+                        <div className="flex flex-col items-center gap-1">
+                            <SeoLoadingStatus variant="compact" lang={lang} />
+                            <span className="text-[10px] opacity-60 font-bold uppercase tracking-widest leading-none">
+                                {lang === 'tr' ? 'Hızlı Ön Analiz (8 Sayfa)' : 'Quick Audit (8 Pages)'}
+                            </span>
+                        </div>
+                    ) : (
+                        (lang === 'tr' ? 'Analiz Et' : 'Audit Now')
+                    )}
                 </button>
 
                 {error && (
@@ -103,14 +118,13 @@ export default function SeoAuditWidget() {
                 {result && (
                     <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded animate-fade-in">
                         <h4 className="font-bold text-green-800 mb-2">
-                            {lang === 'tr' ? 'Sonuçlar' : 'Results'}
+                            {lang === 'tr' ? 'Analiz Tamamlandı' : 'Audit Completed'}
                         </h4>
-                        <div className="text-sm space-y-1 text-green-900">
-                            <p><strong>URL:</strong> {url}</p>
-                            <p><strong>Score:</strong> {result.summary?.averageScore}/100</p>
-                            <p><strong>Pages:</strong> {result.summary?.totalPages}</p>
-                            <p className="text-xs text-green-700 mt-2 italic">
-                                {lang === 'tr' ? 'Detaylı rapor yöneticilerimize iletildi.' : 'Detailed report sent to admins.'}
+                        <div className="text-sm space-y-1 text-green-900 line-clamp-2">
+                            <p><strong>Score:</strong> {result.score}/100</p>
+                            <p><strong>Pages:</strong> {result.pagesAudited}</p>
+                            <p className="text-xs text-green-700 mt-2 italic font-medium">
+                                {lang === 'tr' ? 'Detaylı rapor WebFine dashboard üzerinden görüntülenebilir.' : 'Full report available on WebFine dashboard.'}
                             </p>
                         </div>
                     </div>

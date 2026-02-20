@@ -16,7 +16,12 @@ Bu belge, projede gerçekleştirilen v4.0.0 yükseltmesi ve sonrasındaki tüm g
   - `/api/lead`: 10 dk / 5 istek.
 - **Health Classification:** Analiz sonuçları skor bazlı "Critical", "Needs Optimization", "High Potential" olarak sınıflandırılır.
 
-### 3. Telegram & Bildirim v4
+### 3. Dinamik AI Yükleme Durumu (v4.0.1)
+- **Canlı Analiz Mesajları:** "Ücretsiz Analiz Et" butonuna tıklandığında, analiz süreci boyunca değişen dinamik AI durum mesajları (Meta kontrolü, SEO hataları vb.) eklendi.
+- **Buton UX:** Yükleme sırasında butonun yüksekliği (`min-h`) sabitlenerek sayfa kayması engellendi.
+- **React Entegrasyonu:** `SeoAuditPage.tsx` ve `SeoAuditWidget.tsx` dosyaları v4 Hard Gate ve Dinamik Loading mantığıyla tamamen güncellendi.
+
+### 4. Telegram & Bildirim v4
 - Telegram bildirimleri yeni şık formatı ve sağlık durumu bilgileriyle zenginleştirildi.
 - E-posta doğrulama mesajları i18n sistemine entegre edildi.
 

@@ -73,14 +73,14 @@ export const SeoLoadingStatus: React.FC<SeoLoadingStatusProps> = ({
     // VARIANT: COMPACT (Inline for buttons/small areas)
     if (variant === 'compact') {
         return (
-            <div className="flex items-center gap-3 px-4 py-2 bg-slate-950/40 backdrop-blur-md border border-white/10 rounded-xl transition-all duration-500">
+            <div className="flex items-center gap-3 px-1 transition-all duration-500">
                 {/* Compact Spinner */}
                 <div className="relative flex-shrink-0">
                     <div className="w-5 h-5 rounded-full border-2 border-slate-800 border-t-blue-400 animate-spin"></div>
                 </div>
 
                 {/* Rolling Message */}
-                <div className="overflow-hidden h-6 min-w-[200px] flex items-center">
+                <div className="overflow-hidden h-6 min-w-[160px] flex items-center">
                     <span className={`text-sm font-medium tracking-tight whitespace-nowrap transition-all duration-700 bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-indigo-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
                         }`}>
                         {activeMessages[currentMessageIndex]}
