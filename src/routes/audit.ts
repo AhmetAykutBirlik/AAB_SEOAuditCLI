@@ -34,6 +34,22 @@ interface AuditSession {
 // Temporary in-memory store for sessions to handle /lead call (In production, use Redis/DB)
 const sessionStore = new Map<string, AuditSession>();
 
+const DISPOSABLE_DOMAINS = [
+    'mailinator.com', '10minutemail.com', 'temp-mail.org', 'yopmail.com',
+    'guerrillamail.com', 'guerrillamail.net', 'guerrillamail.org'
+];
+
+function isDisposableEmail(email: string): boolean {
+    const domain = email.split('@')[1]?.toLowerCase();
+    return DISPOSABLE_DOMAINS.some(d => domain === d || domain.endsWith('.' + d));
+}
+
+function getHealthLevel(score: number): string {
+    if (score < 60) return "Critical";
+    if (score < 80) return "Needs Optimization";
+    return "High Potential";
+}
+
 function logAudit(data: any) {
     const logDir = path.join(__dirname, '../../logs');
     if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
@@ -52,7 +68,14 @@ function logAudit(data: any) {
 
 export async function auditRoutes(fastify: FastifyInstance) {
 
-    fastify.post('/audit', async (req, reply) => {
+    fastify.post('/audit', {
+        config: {
+            rateLimit: {
+                max: 10,
+                timeWindow: '10 minutes'
+            }
+        }
+    }, async (req, reply) => {
         const requestId = uuidv4();
         try {
             const body = AuditSchema.parse(req.body);
@@ -105,6 +128,7 @@ export async function auditRoutes(fastify: FastifyInstance) {
                 requestId,
                 site: session.site,
                 score: totalScore,
+                healthLevel: getHealthLevel(totalScore),
                 summary: {
                     errors: totalErrors,
                     warnings: totalWarnings,
@@ -127,9 +151,22 @@ export async function auditRoutes(fastify: FastifyInstance) {
         }
     });
 
-    fastify.post('/lead', async (req, reply) => {
+    fastify.post('/lead', {
+        config: {
+            rateLimit: {
+                max: 5,
+                timeWindow: '10 minutes'
+            }
+        }
+    }, async (req, reply) => {
         try {
             const body = LeadSchema.parse(req.body);
+
+            // Email validation v4
+            const cleanEmail = body.email.trim();
+            if (cleanEmail.length > 100) throw new Error('Email too long');
+            if (isDisposableEmail(cleanEmail)) throw new Error('Please use a permanent email address');
+
             const session = sessionStore.get(body.requestId);
 
             if (!session) {
@@ -145,10 +182,10 @@ export async function auditRoutes(fastify: FastifyInstance) {
                 errors: session.errors,
                 warnings: session.warnings,
                 clientIp: session.ip,
-                email: body.email
+                email: cleanEmail
             }).catch(e => fastify.log.error(e));
 
-            logAudit({ requestId: body.requestId, email: body.email, action: 'lead_captured' });
+            logAudit({ requestId: body.requestId, email: cleanEmail, action: 'lead_captured' });
 
             return {
                 success: true,
@@ -162,7 +199,7 @@ export async function auditRoutes(fastify: FastifyInstance) {
     });
 
     fastify.get('/health', async () => {
-        return { status: 'ok', version: '3.0.0', timestamp: new Date().toISOString() };
+        return { status: 'ok', version: '4.0.0', timestamp: new Date().toISOString() };
     });
 }
 

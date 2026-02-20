@@ -23,18 +23,25 @@ export async function sendTelegramReport(data: TelegramReportData): Promise<void
     try {
         const bot = new Telegraf(token);
 
-        const text = `
-🚀 *New SEO Audit Lead*
+        let healthLevel = "High Potential";
+        if (data.avgScore < 60) healthLevel = "Critical";
+        else if (data.avgScore < 80) healthLevel = "Needs Optimization";
 
-🌐 *Site:* \`${data.domain}\`
-📧 *Email:* ${data.email ? `\`${data.email}\`` : '_Not provided_'}
+        const text = `
+🔥 *WebFine SEO Lead*
+
+🌐 *Domain:* \`${data.domain}\`
+📧 *Email:* \`${data.email}\`
+
 📊 *Score:* ${data.avgScore}/100
 ❌ *Errors:* ${data.errors}
 ⚠ *Warnings:* ${data.warnings}
 📄 *Pages:* ${data.pagesAudited}
-⏱ *Duration:* ${data.durationMs} ms
+⏱ *Duration:* ${data.durationMs}ms
 
-#WebFine #SEOAudit
+Health: *${healthLevel}*
+
+#WebFine
 `.trim();
 
         await bot.telegram.sendMessage(chatId, text, { parse_mode: 'Markdown' });

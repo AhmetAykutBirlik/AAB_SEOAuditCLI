@@ -29,12 +29,8 @@ server.register(require('@fastify/static'), {
     prefix: '/',
 });
 
-// Stricter Rate Limiting
-server.register(rateLimit, {
-    max: 10,
-    timeWindow: '10 minutes',
-    // In production, use a more robust key generator if behind proxy
-});
+// Configure Rate Limiting (Default policy)
+server.register(rateLimit);
 
 // Register routes
 server.register(async (instance) => {
@@ -44,7 +40,7 @@ server.register(async (instance) => {
 const start = async () => {
     try {
         await server.listen({ port: PORT, host: '0.0.0.0' });
-        console.log(`🚀 AAB SEO Audit API v3.0.0 listening on port ${PORT}`);
+        console.log(`🚀 AAB SEO Audit API v4.0.0 listening on port ${PORT}`);
     } catch (err) {
         server.log.error(err);
         process.exit(1);

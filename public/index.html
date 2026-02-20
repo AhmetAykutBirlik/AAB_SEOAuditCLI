@@ -71,163 +71,187 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        .blur-bg {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .mandatory-modal {
+            pointer-events: auto !important;
+        }
     </style>
 </head>
 
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
-
-    <!-- Navbar -->
-    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div
-                class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                WEBFINE
-            </div>
-            <div class="flex items-center gap-6">
-                <!-- Language Switcher -->
-                <div class="bg-slate-100 p-1 rounded-lg flex gap-1">
-                    <button onclick="setLanguage('tr')" id="lang-tr"
-                        class="px-3 py-1 text-xs font-bold rounded-md transition-all">TR</button>
-                    <button onclick="setLanguage('en')" id="lang-en"
-                        class="px-3 py-1 text-xs font-bold rounded-md transition-all">EN</button>
-                </div>
-                <div class="hidden md:block text-sm font-semibold text-slate-500">LEAD GEN MODE</div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero -->
-    <main class="flex-grow">
-        <section class="py-12 md:py-20 relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-b from-blue-50 to-white -z-10"></div>
-            <div class="max-w-4xl mx-auto px-6 text-center">
-                <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 text-slate-900" id="t-hero-title">
-                    Web Sitenizin <span
-                        class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Gerçek
-                        Gücünü</span> Keşfedin
-                </h1>
-                <p class="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto" id="t-hero-subtitle">
-                    Yapay zeka destekli altyapımız ile saniyeler içinde kapsamlı SEO ve performans analizi yapın.
-                </p>
-
-                <!-- Form Card -->
+    <div id="mainContent">
+        <!-- Navbar -->
+        <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                 <div
-                    class="bg-white rounded-2xl shadow-xl shadow-blue-900/5 p-6 md:p-8 max-w-2xl mx-auto border border-slate-100 ring-1 ring-slate-900/5">
-                    <form id="initialForm" onsubmit="openModal(event)" class="space-y-6">
-                        <div class="relative group">
-                            <input type="url" id="urlInput" required placeholder="https://ornek-site.com"
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-6 py-4 pl-12 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg group-hover:bg-white"
-                                value="https://google.com">
-                            <div
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                                🌐
-                            </div>
-                        </div>
-
-                        <button type="submit" id="t-btn-analyze"
-                            class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/20 transform transition-all active:scale-[0.98] flex justify-center items-center gap-2 text-lg">
-                            <span>⚡</span> Ücretsiz Analiz Et
-                        </button>
-                    </form>
+                    class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                    WEBFINE
+                </div>
+                <div class="flex items-center gap-6">
+                    <!-- Language Switcher -->
+                    <div class="bg-slate-100 p-1 rounded-lg flex gap-1">
+                        <button onclick="setLanguage('tr')" id="lang-tr"
+                            class="px-3 py-1 text-xs font-bold rounded-md transition-all">TR</button>
+                        <button onclick="setLanguage('en')" id="lang-en"
+                            class="px-3 py-1 text-xs font-bold rounded-md transition-all">EN</button>
+                    </div>
+                    <div class="hidden md:block text-sm font-semibold text-slate-500">LEAD GEN MODE</div>
                 </div>
             </div>
-        </section>
+        </nav>
 
-        <!-- Results Section -->
-        <section id="resultsSection" class="hidden py-12 bg-slate-50 min-h-[500px]">
-            <div class="max-w-6xl mx-auto px-6 animate-fade-in-up">
+        <!-- Hero -->
+        <main class="flex-grow">
+            <section class="py-12 md:py-20 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-blue-50 to-white -z-10"></div>
+                <div class="max-w-4xl mx-auto px-6 text-center">
+                    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 text-slate-900"
+                        id="t-hero-title">
+                        Web Sitenizin <span
+                            class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Gerçek
+                            Gücünü</span> Keşfedin
+                    </h1>
+                    <p class="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto" id="t-hero-subtitle">
+                        Yapay zeka destekli altyapımız ile saniyeler içinde kapsamlı SEO ve performans analizi yapın.
+                    </p>
 
-                <!-- Summary Stats -->
-                <div class="grid md:grid-cols-3 gap-6 mb-8">
-                    <!-- Score Card -->
+                    <!-- Form Card -->
                     <div
-                        class="bg-white rounded-2xl p-8 shadow-lg border border-slate-100 flex flex-col items-center justify-center col-span-1 relative overflow-hidden">
-                        <div class="text-slate-500 uppercase tracking-widest text-xs font-bold mb-6" id="t-score-label">
-                            GENEL SKOR</div>
-                        <div id="scoreCircle" class="radial-progress shadow-inner"
-                            style="--color: #10b981; --percent: 0%; --text-color: #059669;">
-                            <div class="radial-value" id="scoreDisplay">0</div>
-                        </div>
-
-                        <!-- Scale Legend -->
-                        <div class="mt-6 flex justify-between w-full px-4 text-xs font-medium text-slate-400">
-                            <div class="flex flex-col items-center gap-1"><span
-                                    class="w-2 h-2 rounded-full bg-rose-500"></span>0-49</div>
-                            <div class="flex flex-col items-center gap-1"><span
-                                    class="w-2 h-2 rounded-full bg-amber-500"></span>50-89</div>
-                            <div class="flex flex-col items-center gap-1"><span
-                                    class="w-2 h-2 rounded-full bg-emerald-500"></span>90-100</div>
-                        </div>
-                    </div>
-
-                    <!-- Details Stats -->
-                    <div class="md:col-span-2 grid grid-cols-2 gap-4">
-                        <div class="bg-blue-50 rounded-2xl p-6 flex flex-col justify-center border border-blue-100">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-4xl font-bold text-blue-600" id="totalPages">0</span>
-                                <span class="text-2xl opacity-20">📄</span>
+                        class="bg-white rounded-2xl shadow-xl shadow-blue-900/5 p-6 md:p-8 max-w-2xl mx-auto border border-slate-100 ring-1 ring-slate-900/5">
+                        <form id="initialForm" onsubmit="openModal(event)" class="space-y-6">
+                            <div class="relative group">
+                                <input type="url" id="urlInput" required placeholder="https://ornek-site.com"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-6 py-4 pl-12 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg group-hover:bg-white"
+                                    value="https://google.com">
+                                <div
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                                    🌐
+                                </div>
                             </div>
-                            <span class="text-sm text-slate-600 font-medium uppercase tracking-wide"
-                                id="t-pages-label">Taranan Sayfa</span>
-                        </div>
+
+                            <button type="submit" id="t-btn-analyze"
+                                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/20 transform transition-all active:scale-[0.98] flex justify-center items-center gap-2 text-lg">
+                                <span>⚡</span> Ücretsiz Analiz Et
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="hidden py-12 bg-slate-50 min-h-[500px]">
+                <div class="max-w-6xl mx-auto px-6 animate-fade-in-up">
+
+                    <!-- Summary Stats -->
+                    <div class="grid md:grid-cols-3 gap-6 mb-8">
+                        <!-- Score Card -->
                         <div
-                            class="bg-emerald-50 rounded-2xl p-6 flex flex-col justify-center border border-emerald-100">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-4xl font-bold text-emerald-600" id="t-speed-val">~0.2s</span>
-                                <span class="text-2xl opacity-20">⚡</span>
+                            class="bg-white rounded-2xl p-8 shadow-lg border border-slate-100 flex flex-col items-center justify-center col-span-1 relative overflow-hidden">
+                            <div class="text-slate-500 uppercase tracking-widest text-xs font-bold mb-2"
+                                id="t-score-label">
+                                GENEL SKOR</div>
+                            <div id="healthBadge"
+                                class="mb-4 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500">
+                                Loading...</div>
+                            <div id="scoreCircle" class="radial-progress shadow-inner"
+                                style="--color: #10b981; --percent: 0%; --text-color: #059669;">
+                                <div class="radial-value" id="scoreDisplay">0</div>
                             </div>
-                            <span class="text-sm text-slate-600 font-medium uppercase tracking-wide"
-                                id="t-speed-label">Ort. Hız</span>
+
+                            <!-- Scale Legend -->
+                            <div class="mt-6 flex justify-between w-full px-4 text-xs font-medium text-slate-400">
+                                <div class="flex flex-col items-center gap-1"><span
+                                        class="w-2 h-2 rounded-full bg-rose-500"></span>0-49</div>
+                                <div class="flex flex-col items-center gap-1"><span
+                                        class="w-2 h-2 rounded-full bg-amber-500"></span>50-89</div>
+                                <div class="flex flex-col items-center gap-1"><span
+                                        class="w-2 h-2 rounded-full bg-emerald-500"></span>90-100</div>
+                            </div>
                         </div>
 
-                        <!-- Improvements Card -->
-                        <div onclick="openImprovementsModal()"
-                            class="col-span-2 bg-amber-50 rounded-2xl p-6 flex flex-col justify-center border border-amber-100 cursor-pointer hover:shadow-md transition-all group relative overflow-hidden">
-                            <div class="flex items-center gap-3 mb-1">
-                                <span id="improvements" class="text-4xl font-bold text-amber-600">0</span>
-                                <span
-                                    class="bg-amber-200 text-amber-800 text-xs px-2 py-1 rounded-full font-bold uppercase"
-                                    id="t-badge-critical">ÖNEMLİ</span>
+                        <!-- Details Stats -->
+                        <div class="md:col-span-2 grid grid-cols-2 gap-4">
+                            <div class="bg-blue-50 rounded-2xl p-6 flex flex-col justify-center border border-blue-100">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-4xl font-bold text-blue-600" id="totalPages">0</span>
+                                    <span class="text-2xl opacity-20">📄</span>
+                                </div>
+                                <span class="text-sm text-slate-600 font-medium uppercase tracking-wide"
+                                    id="t-pages-label">Taranan Sayfa</span>
                             </div>
-                            <span class="text-sm text-slate-600 font-medium uppercase tracking-wide"
-                                id="t-issues-label">İyileştirme Önerisi</span>
+                            <div
+                                class="bg-emerald-50 rounded-2xl p-6 flex flex-col justify-center border border-emerald-100">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-4xl font-bold text-emerald-600" id="t-speed-val">~0.2s</span>
+                                    <span class="text-2xl opacity-20">⚡</span>
+                                </div>
+                                <span class="text-sm text-slate-600 font-medium uppercase tracking-wide"
+                                    id="t-speed-label">Ort. Hız</span>
+                            </div>
+
+                            <!-- Improvements Card -->
+                            <div onclick="openImprovementsModal()"
+                                class="col-span-2 bg-amber-50 rounded-2xl p-6 flex flex-col justify-center border border-amber-100 cursor-pointer hover:shadow-md transition-all group relative overflow-hidden">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <span id="improvements" class="text-4xl font-bold text-amber-600">0</span>
+                                    <span
+                                        class="bg-amber-200 text-amber-800 text-xs px-2 py-1 rounded-full font-bold uppercase"
+                                        id="t-badge-critical">ÖNEMLİ</span>
+                                </div>
+                                <span class="text-sm text-slate-600 font-medium uppercase tracking-wide"
+                                    id="t-issues-label">İyileştirme Önerisi</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Page Details List -->
-                <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-                    <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
-                        <h3 class="font-bold text-lg text-slate-800" id="t-details-label">Sayfa Detayları</h3>
+                    <!-- Page Details List (Hidden until lead) -->
+                    <div id="fullReportContainer" class="hidden">
+                        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                            <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                                <h3 class="font-bold text-lg text-slate-800" id="t-details-label">Sayfa Detayları</h3>
+                            </div>
+                            <div id="detailsList" class="divide-y divide-slate-100"></div>
+                        </div>
                     </div>
-                    <div id="detailsList" class="divide-y divide-slate-100"></div>
-                </div>
-            </div>
-        </section>
-    </main>
 
-    <!-- LEAD GEN MODAL -->
+                    <!-- Blur placeholder for preview mode -->
+                    <div id="reportPlaceholder"
+                        class="bg-white rounded-2xl p-12 text-center border-2 border-dashed border-slate-200 text-slate-400 font-bold uppercase tracking-widest">
+                        Tam Rapor Paylaşıldığında Burada Görünecek
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- LEAD GEN MODAL (Hard Gate) -->
     <div id="leadModal" class="fixed inset-0 z-[100] hidden">
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-md transition-opacity opacity-0" id="modalBackdrop">
         </div>
         <div class="fixed inset-0 z-10 overflow-y-auto">
             <div class="flex min-h-full items-center justify-center p-4 text-center">
-                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all w-full max-w-md opacity-0 scale-95"
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all w-full max-w-md opacity-0 scale-95 mandatory-modal"
                     id="modalPanel">
-                    <div class="bg-white px-8 py-8">
+                    <div class="bg-white px-8 py-10">
                         <div class="text-center">
                             <div
-                                class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 mb-4">
-                                <svg class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 mb-6">
+                                <svg class="h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                     stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h3 class="text-2xl font-bold leading-6 text-slate-900 mb-2" id="t-popup-title">Analiz
-                                Tamamlandı!</h3>
-                            <p class="text-sm text-slate-500 mb-6" id="t-popup-desc">Raporunuz hazır. Sonuçları görmek
-                                için e-posta girin.</p>
+                            <h3 class="text-3xl font-black leading-tight text-slate-900 mb-2" id="t-popup-title">Detaylı
+                                SEO Raporunuz Hazır</h3>
+                            <p class="text-sm text-slate-500 mb-8" id="t-popup-desc">Yapay zeka analizimiz tamamlandı.
+                                Raporun tamamını görüntülemek için e-posta adresinizi doğrulayın.</p>
 
                             <form id="leadForm" onsubmit="handleAudit(event)">
                                 <div class="relative rounded-md shadow-sm mb-4">
@@ -303,17 +327,17 @@
                 speed_label: 'Ort. Hız',
                 issues_label: 'İyileştirme Önerisi',
                 details_label: 'Sayfa Detayları',
-                popup_title: 'Analiz Tamamlandı!',
-                popup_desc: 'Raporunuz hazır. Sonuçları görüntülemek ve pdf kopyasını almak için e-posta adresinizi girin.',
-                popup_primary: 'Sonuçları Göster',
-                popup_secondary: 'Vazgeç',
+                popup_title: 'Detaylı SEO Raporunuz Hazır',
+                popup_desc: 'Yapay zeka analizimiz tamamlandı. Detaylı teknik raporu görüntülemek için e-posta adresinizi girin.',
+                popup_primary: '🚀 Detaylı Raporu Aç',
+                trust_line: 'Ücretsiz analiz • Spam yok • WebFine güvencesi',
                 badge_critical: 'ÖNEMLİ',
                 issues_modal_title: 'Tespit Edilen İyileştirme Fırsatları',
                 support_title: 'Profesyonel Destek',
                 support_desc: 'Bu teknik sorunları sizin için çözebiliriz. WebFine ekibiyle iletişime geçin.',
                 support_btn: 'Teklif Al',
                 analyzing: 'Analiz Ediliyor...',
-                saving: 'Kaydediliyor...',
+                saving: 'Doğrulanıyor...',
                 not_found: 'Harika! Ciddi bir sorun tespit edilemedi. 🎉'
             },
             en: {
@@ -325,17 +349,17 @@
                 speed_label: 'Avg. Speed',
                 issues_label: 'Improvements',
                 details_label: 'Page Details',
-                popup_title: 'Analysis Completed!',
-                popup_desc: 'Your report is ready. Enter your email to view results and get a PDF copy.',
-                popup_primary: 'Show Results',
-                popup_secondary: 'Cancel',
+                popup_title: 'Detailed SEO Report Ready',
+                popup_desc: 'AI analysis completed. Enter your email address to view the detailed technical report.',
+                popup_primary: '🚀 Unlock Detailed Report',
+                trust_line: 'Free Analysis • No Spam • Powered by WebFine',
                 badge_critical: 'IMPORTANT',
                 issues_modal_title: 'Detected Improvement Opportunities',
                 support_title: 'Professional Support',
                 support_desc: 'We can fix these technical issues for you. Contact the WebFine team.',
                 support_btn: 'Get a Quote',
                 analyzing: 'Analyzing...',
-                saving: 'Saving...',
+                saving: 'Verifying...',
                 not_found: 'Great! No serious issues were detected. 🎉'
             }
         };
@@ -343,6 +367,7 @@
         let currentLang = 'tr';
         let currentRequestId = null;
         let fullReportData = null;
+        let isLeadCaptured = false;
 
         function setLanguage(lang) {
             currentLang = lang;
@@ -360,7 +385,7 @@
             document.getElementById('t-popup-title').innerText = translations[lang].popup_title;
             document.getElementById('t-popup-desc').innerText = translations[lang].popup_desc;
             document.getElementById('t-popup-primary').innerText = translations[lang].popup_primary;
-            document.getElementById('t-popup-secondary').innerText = translations[lang].popup_secondary;
+            document.getElementById('t-trust-line').innerText = translations[lang].trust_line;
             document.getElementById('t-badge-critical').innerText = translations[lang].badge_critical;
             document.getElementById('t-issues-modal-title').innerText = translations[lang].issues_modal_title;
             document.getElementById('t-support-title').innerText = translations[lang].support_title;
@@ -371,11 +396,19 @@
             document.getElementById('lang-tr').className = lang === 'tr' ? 'px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-blue-600' : 'px-3 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-600';
             document.getElementById('lang-en').className = lang === 'en' ? 'px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-blue-600' : 'px-3 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-600';
 
-            if (fullReportData) showResultsUI(); // Redraw if results exist
+            if (fullReportData) updateUI(fullReportData);
         }
 
         // Initialize Lang
         setLanguage('tr');
+
+        // Prevent ESC key from closing modal
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !document.getElementById('leadModal').classList.contains('hidden')) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
 
         async function openModal(e) {
             e.preventDefault();
@@ -398,12 +431,18 @@
 
                 currentRequestId = data.requestId;
                 fullReportData = data;
+                isLeadCaptured = false;
+
+                // Show Results Preview
+                updateUI(data);
 
                 const modal = document.getElementById('leadModal');
                 const backdrop = document.getElementById('modalBackdrop');
                 const panel = document.getElementById('modalPanel');
+                const main = document.getElementById('mainContent');
 
                 modal.classList.remove('hidden');
+                main.classList.add('blur-bg');
                 setTimeout(() => { backdrop.classList.remove('opacity-0'); panel.classList.remove('opacity-0', 'scale-95'); }, 10);
             } catch (err) {
                 alert(err.message);
@@ -413,43 +452,59 @@
             }
         }
 
-        function closeModal() {
-            const backdrop = document.getElementById('modalBackdrop');
-            const panel = document.getElementById('modalPanel');
-            backdrop.classList.add('opacity-0');
-            panel.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => { document.getElementById('leadModal').classList.add('hidden'); showResultsUI(); }, 300);
-        }
-
         async function handleAudit(e) {
             e.preventDefault();
             const btn = document.getElementById('t-popup-primary');
-            const email = document.getElementById('emailInput').value;
+            const email = document.getElementById('emailInput').value.trim();
+
+            if (!email || !email.includes('@')) return;
+
             btn.disabled = true;
             btn.innerText = translations[currentLang].saving;
 
             try {
-                await fetch('/api/lead', {
+                const res = await fetch('/api/lead', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ requestId: currentRequestId, email, lang: currentLang })
                 });
-                closeModal();
+
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+
+                isLeadCaptured = true;
+                const backdrop = document.getElementById('modalBackdrop');
+                const panel = document.getElementById('modalPanel');
+                const main = document.getElementById('mainContent');
+
+                backdrop.classList.add('opacity-0');
+                panel.classList.add('opacity-0', 'scale-95');
+                main.classList.remove('blur-bg');
+
+                setTimeout(() => {
+                    document.getElementById('leadModal').classList.add('hidden');
+                    updateUI(fullReportData);
+                }, 300);
             } catch (err) {
-                console.error(err);
-                closeModal();
+                alert(err.message);
+                btn.disabled = false;
+                btn.innerText = translations[currentLang].popup_primary;
             }
         }
 
-        function showResultsUI() {
-            if (!fullReportData) return;
-            const r = fullReportData;
+        function updateUI(r) {
             const section = document.getElementById('resultsSection');
             section.classList.remove('hidden');
 
             const score = Math.round(r.score);
             document.getElementById('scoreDisplay').innerText = score;
             const circle = document.getElementById('scoreCircle');
+
+            // Health Badge
+            const badge = document.getElementById('healthBadge');
+            badge.innerText = r.healthLevel || "Needs Optimization";
+            badge.className = `mb-4 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${r.healthLevel === 'Critical' ? 'bg-rose-100 text-rose-600' : r.healthLevel === 'Needs Optimization' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`;
+
             setTimeout(() => {
                 circle.style.setProperty('--percent', score + '%');
                 circle.style.setProperty('--color', score >= 90 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444');
@@ -459,10 +514,27 @@
             document.getElementById('totalPages').innerText = r.pagesAudited;
             document.getElementById('improvements').innerText = r.summary.errors + r.summary.warnings;
 
+            // Report visibility
+            const reportContainer = document.getElementById('fullReportContainer');
+            const placeholder = document.getElementById('reportPlaceholder');
+
+            if (isLeadCaptured) {
+                reportContainer.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                renderFullReport(r.report);
+            } else {
+                reportContainer.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            }
+
+            setTimeout(() => section.scrollIntoView({ behavior: 'smooth' }), 300);
+        }
+
+        function renderFullReport(report) {
             const list = document.getElementById('detailsList');
             list.innerHTML = '';
 
-            r.report.forEach(page => {
+            report.forEach(page => {
                 const color = page.score >= 90 ? 'text-emerald-500' : page.score >= 50 ? 'text-amber-500' : 'text-rose-500';
                 const item = document.createElement('div');
                 item.className = 'p-6 hover:bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors';
@@ -487,11 +559,16 @@
                 `;
                 list.appendChild(item);
             });
-            setTimeout(() => section.scrollIntoView({ behavior: 'smooth' }), 300);
         }
 
         function openImprovementsModal() {
-            if (!fullReportData) return;
+            if (!fullReportData || !isLeadCaptured) {
+                if (!isLeadCaptured && fullReportData) {
+                    document.getElementById('leadModal').classList.remove('hidden');
+                    document.getElementById('mainContent').classList.add('blur-bg');
+                }
+                return;
+            }
             const modal = document.getElementById('improvementsModal');
             const list = document.getElementById('improvementsList');
             list.innerHTML = '';

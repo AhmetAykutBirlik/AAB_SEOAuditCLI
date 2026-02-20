@@ -1,52 +1,33 @@
-# PROJE GÜNCELLEME ÖZETI: SEO Audit API v3.0.0 (Lead Funnel Update)
+# PROJE GÜNCELLEME ÖZETI: SEO Audit API v4.0.0 (Hard Lead Gate Update)
 
-Bu belge, projede gerçekleştirilen v3.0.0 yükseltmesi ve sonrasındaki tüm geliştirmelerin detaylı dökümünü içerir. Proje, basit bir CLI aracından profesyonel, "Lead Generation" (Müşteri Adayı Toplama) odaklı bir SaaS platformuna dönüştürülmüştür.
+Bu belge, projede gerçekleştirilen v4.0.0 yükseltmesi ve sonrasındaki tüm geliştirmelerin detaylı dökümünü içerir.
 
-## 🚀 Ana Yenilikler ve Geliştirmeler
+## 🚀 Ana Yenilikler ve Geliştirmeler (v4.0.0)
 
-### 1. Lead Funnel (Müşteri Adayı Hunisi) Mimari Geçişi
-- **Ayrılmış Akış:** Sistem artık iki aşamalı çalışıyor.
-  - **Aşama 1 (Preview):** Kullanıcı URL girer, analiz yapılır ve sonuçların bir özeti (önizleme) gösterilir.
-  - **Aşama 2 (Lead Capture):** Kullanıcı tam raporu görmek için e-posta adresini girer. E-posta girildiğinde veriler kaydedilir ve Telegram üzerinden bildirim gönderilir.
-- **Session Management:** Analiz sonuçları `requestId` ile geçici bellekte saklanır, böylece e-posta girildiğinde sonuçlar anında eşleştirilir.
+### 1. Hard Lead Gate (Zorunlu Kayıt Bariyeri)
+- **Kapatılamaz Modal:** Analiz önizlemesinden sonra açılan e-posta toplama modalı artık zorunludur. `Vazgeç` butonu kaldırıldı, ESC ve dış tıklama engellendi.
+- **Dinamik Blur Efekti:** Modal açıkken ana içerik profesyonel bir bulanıklık efektiyle gizlenir.
+- **Rapor Kilitleme:** Tam teknik rapor sadece geçerli bir e-posta girildikten sonra DOM'da render edilir ve görünür hale gelir.
 
-### 2. Gelişmiş SEO Analiz Motoru (Crawler v3)
-- **Kapsamlı Kontroller:**
-  - Meta Etiketleri (Title, Description, Canonical, Robots)
-  - Başlık Hiyerarşisi (H1 kontrolü)
-  - Görsel Optimizasyonu (Alt tag eksikleri)
-  - Teknik SEO (Sitemap.xml, Robots.txt doğrulama)
-  - Performans (TTFB ve Sayfa boyutu ölçümü)
-  - Yönlendirme Zincirleri (HTTP -> HTTPS, WWW tutarlılığı)
-- **Puanlama Modeli:** 100 üzerinden dinamik puanlama sistemi (-5 Error, -2 Warning) uygulandı.
+### 2. Gelişmiş Doğrulama ve Güvenlik
+- **Disposable Email (Tek Kullanımlık E-posta) Bloğu:** Mailinator, temp-mail gibi servislerin kullanımı engellendi.
+- **Endpoint Bazlı Rate Limit:** 
+  - `/api/audit`: 10 dk / 10 istek.
+  - `/api/lead`: 10 dk / 5 istek.
+- **Health Classification:** Analiz sonuçları skor bazlı "Critical", "Needs Optimization", "High Potential" olarak sınıflandırılır.
 
-### 3. Güvenlik Hardening (Siber Güvenlik Sıkılaştırma)
-- **Üst Düzey SSRF Koruması:** `ipaddr.js` entegrasyonu ile IPv4 ve IPv6 özel IP aralıkları, localhost ve DNS rebinding saldırıları tamamen engellendi.
-- **Filtreleme:** Sadece 80 ve 443 portlarına izin verilir. Maksimum HTML boyutu 5MB ile sınırlandırıldı.
-- **Rate Limit:** IP başına günlük ve 10 dakikalık katı limitler uygulandı.
-
-### 4. Premium UI/UX Geliştirmeleri
-- **SeoLoadingStatus Bileşeni (v2):** 
-  - WebFine temasına uygun Dark Premium (Karanlık Tema) tasarımı.
-  - Yapay zeka destekli, dinamik olarak değişen profesyonel yükleme mesajları (AI Analysis Mode).
-  - "Compact" ve "Card" olmak üzere iki farklı kullanım varyantı eklendi.
-- **Frontend Refactoring:** Vanilla JS ve Tailwind CSS ile tamamen responsive, animasyonlu ve modern bir kullanıcı arayüzü oluşturuldu.
-
-### 5. Tam i18n Dil Desteği (TR / EN)
-- **Frontend & Backend:** Tüm hata mesajları, pop-up'lar, butonlar ve rapor içerikleri artık tamamen Türkçe ve İngilizce dillerinde sunulmaktadır.
-- **Language Switcher:** Arayüz üzerinde anlık dil değiştirme imkanı sağlandı.
-
-### 6. Bildirim ve Loglama
-- **Telegram v3:** Lead (müşteri adayı) bilgileriyle zenginleştirilmiş, şık formatlı bildirimler.
-- **JSONL Loglama:** Tüm analizler `/logs/` klasöründe tarihli `.jsonl` dosyalarında KV (Key-Value) formatında tutulmaktadır (KVKK uyumlu maskeleme ile).
+### 3. Telegram & Bildirim v4
+- Telegram bildirimleri yeni şık formatı ve sağlık durumu bilgileriyle zenginleştirildi.
+- E-posta doğrulama mesajları i18n sistemine entegre edildi.
 
 ---
 
-## 🛠 Teknik Detaylar
-- **Engine:** Fastify + TypeScript
-- **Kütüphaneler:** Axios, Cheerio, Zod, Ipaddr.js, Telegraf, Pino
-- **Deployment:** cPanel/Plesk Node.js App uyumlu yapılandırma.
+## 🛠 Önceki v3 Özellikleri (Lead Funnel Core)
+- İki aşamalı analiz akışı (Preview -> Lead -> Full).
+- Gelişmiş SEO motoru (Meta, H1, Sitemap, Robots, Performance).
+- SSRF ve Cloudflare Turnstile koruması.
+- Dark Premium UI bileşenleri.
 
 **Dosya:** `c:\Users\ahmet\Masaüstü\AntiGravityGitHub\No_AAB_SEOAuditCLI\PROJE_GUNCELLEME_OZETI.txt`
 **Tarih:** 20.02.2026
-**Versiyon:** 3.0.0
+**Versiyon:** 4.0.0
