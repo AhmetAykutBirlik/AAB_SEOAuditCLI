@@ -1,0 +1,47 @@
+# PROJE DÖKÜMÜ: No AAB SEO Audit CLI/Service
+
+Bu proje, cPanel gibi paylaşımlı barındırma ortamlarında çalışmak üzere optimize edilmiş, yüksek güvenlikli ve performanslı bir SEO denetim (audit) servisidir.
+
+## Teknik Yığın (Tech Stack)
+- **Backend:** Node.js, TypeScript
+- **Framework:** Fastify (Hızlı ve düşük maliyetli API framework'ü)
+- **Güvenlik:** Cloudflare Turnstile, SSRF Koruması, Rate Limiting (Hız Sınırlama)
+- **Bildirim:** Telegram Bot API
+- **Dil Desteği:** TR (Türkçe) ve EN (İngilizce) i18n desteği
+
+## Yapılan İşlemler ve Özellikler
+
+### 1. API Altyapısı (server.ts)
+- Fastify sunucusu kuruldu ve yapılandırıldı.
+- CORS ve Rate Limit (dakikada 100 istek) eklentileri entegre edildi.
+- Statik dosya sunumu (`public` klasörü) aktif edildi.
+- `/health` kontrol endpoint'i oluşturuldu.
+
+### 2. Güvenlik Katmanı (src/lib/security.ts)
+- **Cloudflare Turnstile:** Bot saldırılarını önlemek için doğrulama sistemi entegre edildi.
+- **SSRF Koruması:** Sunucu kaynaklarına içeriden erişimi engellemek için localhost ve özel IP blokları (private IPs) kara listeye alındı.
+
+### 3. SEO Denetim Motoru (src/lib/crawler.ts)
+- Belirtilen URL'yi tarayan ve aşağıdaki parametreleri kontrol eden bir sistem geliştirildi:
+  - Meta Title & Description
+  - H1 - H6 Başlık hiyerarşisi
+  - Görsellerin `alt` etiketleri
+  - Dahili (Internal) link yapısı
+  - HTTP durum kodları
+
+### 4. Bildirim Sistemi (src/lib/telegram.ts)
+- Bir denetim tamamlandığında sonuçların otomatik olarak belirlenen bir Telegram kanalına/botuna raporlanması sağlandı.
+- Rapor içeriği: Taranan alan adı, sayfa sayısı, ortalama puan, hata sayısı ve işlem süresi.
+
+### 5. Çoklu Dil Desteği (src/lib/i18n.ts)
+- Tüm API hata ve başarı mesajları hem Türkçe hem de İngilizce olarak sunulabiliyor.
+
+### 6. Endpoint Yapısı (src/routes/audit.ts)
+- `POST /api/audit`: Denetim sürecini başlatan ana endpoint. Turnstile token doğrulaması, SSRF kontrolü ve tarama işlemlerini sırasıyla yürütür.
+
+## Kullanım Bilgileri
+- **Geliştirme Ortamı:** `npm run dev` komutu ile çalıştırılır (tsx watch kullanır).
+- **Yapılandırma:** `.env` dosyası üzerinden API anahtarları, limitlemeler ve port ayarları yönetilir.
+
+---
+Bu proje, web sitelerinin SEO kalitesini ölçmek ve sonuçları hızlıca raporlamak için kurumsal standartlarda bir temel sunmaktadır.

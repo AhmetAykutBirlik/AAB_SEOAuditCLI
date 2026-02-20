@@ -1,0 +1,52 @@
+# PROJE GÜNCELLEME ÖZETI: SEO Audit API v3.0.0 (Lead Funnel Update)
+
+Bu belge, projede gerçekleştirilen v3.0.0 yükseltmesi ve sonrasındaki tüm geliştirmelerin detaylı dökümünü içerir. Proje, basit bir CLI aracından profesyonel, "Lead Generation" (Müşteri Adayı Toplama) odaklı bir SaaS platformuna dönüştürülmüştür.
+
+## 🚀 Ana Yenilikler ve Geliştirmeler
+
+### 1. Lead Funnel (Müşteri Adayı Hunisi) Mimari Geçişi
+- **Ayrılmış Akış:** Sistem artık iki aşamalı çalışıyor.
+  - **Aşama 1 (Preview):** Kullanıcı URL girer, analiz yapılır ve sonuçların bir özeti (önizleme) gösterilir.
+  - **Aşama 2 (Lead Capture):** Kullanıcı tam raporu görmek için e-posta adresini girer. E-posta girildiğinde veriler kaydedilir ve Telegram üzerinden bildirim gönderilir.
+- **Session Management:** Analiz sonuçları `requestId` ile geçici bellekte saklanır, böylece e-posta girildiğinde sonuçlar anında eşleştirilir.
+
+### 2. Gelişmiş SEO Analiz Motoru (Crawler v3)
+- **Kapsamlı Kontroller:**
+  - Meta Etiketleri (Title, Description, Canonical, Robots)
+  - Başlık Hiyerarşisi (H1 kontrolü)
+  - Görsel Optimizasyonu (Alt tag eksikleri)
+  - Teknik SEO (Sitemap.xml, Robots.txt doğrulama)
+  - Performans (TTFB ve Sayfa boyutu ölçümü)
+  - Yönlendirme Zincirleri (HTTP -> HTTPS, WWW tutarlılığı)
+- **Puanlama Modeli:** 100 üzerinden dinamik puanlama sistemi (-5 Error, -2 Warning) uygulandı.
+
+### 3. Güvenlik Hardening (Siber Güvenlik Sıkılaştırma)
+- **Üst Düzey SSRF Koruması:** `ipaddr.js` entegrasyonu ile IPv4 ve IPv6 özel IP aralıkları, localhost ve DNS rebinding saldırıları tamamen engellendi.
+- **Filtreleme:** Sadece 80 ve 443 portlarına izin verilir. Maksimum HTML boyutu 5MB ile sınırlandırıldı.
+- **Rate Limit:** IP başına günlük ve 10 dakikalık katı limitler uygulandı.
+
+### 4. Premium UI/UX Geliştirmeleri
+- **SeoLoadingStatus Bileşeni (v2):** 
+  - WebFine temasına uygun Dark Premium (Karanlık Tema) tasarımı.
+  - Yapay zeka destekli, dinamik olarak değişen profesyonel yükleme mesajları (AI Analysis Mode).
+  - "Compact" ve "Card" olmak üzere iki farklı kullanım varyantı eklendi.
+- **Frontend Refactoring:** Vanilla JS ve Tailwind CSS ile tamamen responsive, animasyonlu ve modern bir kullanıcı arayüzü oluşturuldu.
+
+### 5. Tam i18n Dil Desteği (TR / EN)
+- **Frontend & Backend:** Tüm hata mesajları, pop-up'lar, butonlar ve rapor içerikleri artık tamamen Türkçe ve İngilizce dillerinde sunulmaktadır.
+- **Language Switcher:** Arayüz üzerinde anlık dil değiştirme imkanı sağlandı.
+
+### 6. Bildirim ve Loglama
+- **Telegram v3:** Lead (müşteri adayı) bilgileriyle zenginleştirilmiş, şık formatlı bildirimler.
+- **JSONL Loglama:** Tüm analizler `/logs/` klasöründe tarihli `.jsonl` dosyalarında KV (Key-Value) formatında tutulmaktadır (KVKK uyumlu maskeleme ile).
+
+---
+
+## 🛠 Teknik Detaylar
+- **Engine:** Fastify + TypeScript
+- **Kütüphaneler:** Axios, Cheerio, Zod, Ipaddr.js, Telegraf, Pino
+- **Deployment:** cPanel/Plesk Node.js App uyumlu yapılandırma.
+
+**Dosya:** `c:\Users\ahmet\Masaüstü\AntiGravityGitHub\No_AAB_SEOAuditCLI\PROJE_GUNCELLEME_OZETI.txt`
+**Tarih:** 20.02.2026
+**Versiyon:** 3.0.0

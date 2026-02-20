@@ -1,0 +1,180 @@
+project:
+  name: "AAB_SEOAuditCLI"
+  goal: >
+    Build a production-grade SEO Audit service on cPanel Node.js App.
+    Public endpoint is protected with Cloudflare Turnstile + rate limiting + SSRF protection.
+    Sends Telegram notification on every audit completion.
+    Provide TR/EN localization for API responses and report headings.
+    Provide a Next.js static widget snippet for webfine.com.tr to run audits.
+
+security_nonnegotiable:
+  - "NEVER hardcode secrets or tokens in repo (no Turnstile Secret, no Telegram token)."
+  - "All secrets must be read from environment variables (.env locally, cPanel env in prod)."
+  - "Reject requests if Turnstile verification fails."
+  - "Block SSRF: private IP ranges, localhost, non-http(s), non-80/443 ports by default."
+  - "Rate limit public usage."
+
+deployment_targets:
+  backend: "cPanel Node.js App (Node 20, also works on Node 18+)"
+  frontend: "Next.js static site (webfine.com.tr)"
+
+env_required:
+  backend_env:
+    - key: "TURNSTILE_SECRET_KEY"
+      value: "0x4AAAAAACfXqARzzOEvNen-SjTmm9adlAk"
+    - key: "TELEGRAM_BOT_TOKEN"
+      value: "8459395293:AAHVr0Rjg3BGrmut-IA-K5b5bIbN4faOPGc"
+    - key: "TELEGRAM_CHAT_ID"
+      value: "8459395293:AAHVr0Rjg3BGrmut-IA-K5b5bIbN4faOPGc"
+    - key: "ALLOWED_ORIGINS"
+      value: "https://webfine.com.tr,https://www.webfine.com.tr"
+    - key: "PORT"
+      value: "cPanel provides process.env.PORT"
+  frontend_env:
+    - key: "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
+      value: "SET_IN_NEXTJS_ENV__SAFE_PUBLIC"
+    - key: "NEXT_PUBLIC_SEO_AUDIT_API_BASE"
+      value: "https://<YOUR_API_DOMAIN>"
+Here is the token for bot WebFine Audit Bot @webfine_audit_bot:
+Site Key
+0x4AAAAAACfXqK5uniLNbbv8
+Click to copy
+Secret Key
+0x4AAAAAACfXqARzzOEvNen-SjTmm9adlAk
+Click to copy
+Note: you will 
+8459395293:AAHVr0Rjg3BGrmut-IA-K5b5bIbN4faOPGc
+telegram:
+  requirements:
+    - "Implement sendMessage via Telegram Bot API"
+    - "Use TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID from env"
+    - "Do not log token/chat id"
+  message_template: |
+    SEO Audit Completed
+    Domain: {{domain}}
+    Mode: {{mode}}
+    Pages: {{pagesAudited}}/{{maxPages}}
+    Score: {{score}}
+    Errors: {{errors}}  Warnings: {{warnings}}
+    Duration: {{durationMs}}ms
+    IP: {{clientIp}}
+
+turnstile:
+  requirements:
+    - "Frontend obtains token using Site Key"
+    - "Backend verifies token using Secret Key at Cloudflare siteverify endpoint"
+    - "If success !== true -> return 401 with localized message"
+  siteverify_endpoint: "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+
+rate_limit:
+  strategy: "IP-based + token-hash"
+  limits:
+    - "10 requests / 10 minutes per IP"
+    - "50 requests / 24 hours per IP"
+  response:
+    status: 429
+    include_retry_after: true
+
+ssrf_protection:
+  rules:
+    - "Allow only http/https"
+    - "Block localhost and private ranges (IPv4+IPv6)"
+    - "Resolve DNS and validate final IP (prevent DNS rebinding)"
+    - "Allow ports 80/443 only (configurable)"
+  failures:
+    status: 400
+    message_key: "blocked_ssrf"
+
+audit_engine:
+  defaults:
+    mode: "url"
+    maxPages: 50
+    maxDepth: 2
+    concurrency: 3
+    delayMs: 200
+    timeoutMs: 15000
+    maxTotalTimeMs: 60000
+  checks:
+    meta:
+      - "title present + length"
+      - "meta description present + length"
+      - "canonical present"
+      - "robots meta warn on noindex"
+    headings:
+      - "H1 missing/multiple"
+    links:
+      - "broken internal links"
+      - "redirect chains"
+      - "mixed content"
+    images:
+      - "missing alt"
+    structure:
+      - "robots.txt impact summary"
+      - "http->https and www/non-www consistency"
+    perf_light:
+      - "TTFB measurement"
+  outputs:
+    - "Return JSON response"
+    - "Optionally write JSON+MD reports under ./reports/<requestId>.*"
+
+api:
+  framework: "Fastify preferred (or Express)"
+  base_path: "/api"
+  endpoints:
+    - "POST /audit"
+    - "GET /health"
+    - "GET /test-telegram (admin-style; protect with simple secret header or disable in prod)"
+  cors:
+    allow_origins:
+      - "https://webfine.com.tr"
+      - "https://www.webfine.com.tr"
+
+i18n:
+  locales: ["tr", "en"]
+  requirement: "Localize API errors, rate-limit messages, block reasons, and report headings."
+  keys_minimum:
+    tr:
+      turnstile_failed: "Doğrulama başarısız. Lütfen tekrar deneyin."
+      rate_limited: "Çok fazla istek gönderildi. Lütfen daha sonra tekrar deneyin."
+      invalid_url: "Geçersiz URL. http/https ile başlayan bir adres girin."
+      blocked_ssrf: "Bu URL güvenlik nedeniyle engellendi."
+      audit_started: "Denetim başlatıldı."
+      audit_done: "Denetim tamamlandı."
+    en:
+      turnstile_failed: "Verification failed. Please try again."
+      rate_limited: "Too many requests. Please try again later."
+      invalid_url: "Invalid URL. Provide an http/https URL."
+      blocked_ssrf: "This URL was blocked for security reasons."
+      audit_started: "Audit started."
+      audit_done: "Audit completed."
+
+frontend_widget_nextjs_static:
+  deliverables:
+    - "assets/webfine/widget/SeoAuditWidget.tsx"
+    - "assets/webfine/widget/README.md"
+  requirements:
+    - "Turnstile widget using NEXT_PUBLIC_TURNSTILE_SITE_KEY"
+    - "POST to /api/audit with url + mode + lang + turnstileToken"
+    - "Theme-inherit UI (font/color inherit, minimal CSS)"
+    - "TR/EN toggle in widget"
+
+cpanel_deploy:
+  requirements:
+    - "README with cPanel Node.js App steps"
+    - "npm run build then npm start"
+    - "Start binds to process.env.PORT"
+    - "Ensure ./logs and ./reports directories exist and are writable"
+  include:
+    - "Simple log rotation script suggestion (keep 30 days)"
+
+developer_experience:
+  - "README.md TR+EN"
+  - "Vitest tests for SSRF guard, URL validation, i18n resolver"
+  - "ESLint + Prettier"
+  - "GitHub Actions CI (lint+test)"
+  - "No secrets committed, add .env.example and .gitignore"
+
+notes:
+  - "Do NOT mention Antigravity/Envato in README."
+  - "Public caps strict: maxPages<=50, maxDepth<=2."
+  - "Never echo tokens in logs or responses."
