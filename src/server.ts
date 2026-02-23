@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -8,18 +9,19 @@ dotenv.config();
 
 const server = Fastify({
     logger: {
-        level: 'info',
-        transport: {
+        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+        transport: process.env.NODE_ENV === 'production' ? undefined : {
             target: 'pino-pretty'
         }
     },
+    trustProxy: process.env.TRUST_PROXY === 'true' || process.env.TRUST_PROXY || false,
 });
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 import { auditRoutes } from './routes/audit';
 
-// Register plugins
+// Register plugins (CORS and Static)
 server.register(cors, {
     origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
 });
@@ -30,7 +32,11 @@ server.register(require('@fastify/static'), {
 });
 
 // Configure Rate Limiting (Default policy)
-server.register(rateLimit);
+server.register(rateLimit, {
+    global: true,
+    max: 100,
+    timeWindow: '1 minute'
+});
 
 // Register routes
 server.register(async (instance) => {

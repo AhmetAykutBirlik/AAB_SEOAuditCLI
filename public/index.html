@@ -317,105 +317,119 @@
     </div>
 
     <script>
-        const translations = {
-            tr: {
-                hero_title: 'Web Sitenizin <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Gerçek Gücünü</span> Keşfedin',
-                hero_subtitle: 'Yapay zeka destekli altyapımız ile saniyeler içinde kapsamlı SEO ve performans analizi yapın.',
-                btn_analyze: '<span>⚡</span> Ücretsiz Analiz Et',
-                score_label: 'GENEL SKOR',
-                pages_label: 'Taranan Sayfa',
-                speed_label: 'Ort. Hız',
-                issues_label: 'İyileştirme Önerisi',
-                details_label: 'Sayfa Detayları',
-                popup_title: 'Detaylı SEO Raporunuz Hazır',
-                popup_desc: 'Hızlı ön analiz tamamlandı. Detaylı teknik raporu görüntülemek için e-posta adresinizi girin.',
-                popup_primary: '🚀 Detaylı Raporu Aç',
-                trust_line: 'Ücretsiz analiz • Spam yok • WebFine güvencesi',
-                badge_critical: 'ÖNEMLİ',
-                issues_modal_title: 'Tespit Edilen İyileştirme Fırsatları',
-                support_title: 'Profesyonel Destek',
-                support_desc: 'Bu teknik sorunları sizin için çözebiliriz. WebFine ekibiyle iletişime geçin.',
-                support_btn: 'Teklif Al',
-                analyzing: 'Analiz Ediliyor...',
-                saving: 'Doğrulanıyor...',
-                not_found: 'Harika! Ciddi bir sorun tespit edilemedi. 🎉',
-                loading_messages: [
-                    "🧠 Yapay zeka site yapınızı analiz ediyor...",
-                    "🔍 Meta etiketleri ve başlık yapısı inceleniyor...",
-                    "⚙️ Teknik SEO hataları tespit ediliyor...",
-                    "📊 Performans ve hız metrikleri ölçülüyor...",
-                    "🛠 İndeksleme ve yönlendirmeler kontrol ediliyor...",
-                    "🚀 Detaylı rapor oluşturuluyor..."
-                ]
-            },
-            en: {
-                hero_title: 'Discover the <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">True Power</span> of Your Website',
-                hero_subtitle: 'Perform comprehensive SEO and performance analysis in seconds with our AI-powered infrastructure.',
-                btn_analyze: '<span>⚡</span> Analyze for Free',
-                score_label: 'OVERALL SCORE',
-                pages_label: 'Pages Audited',
-                speed_label: 'Avg. Speed',
-                issues_label: 'Improvements',
-                details_label: 'Page Details',
-                popup_title: 'Detailed SEO Report Ready',
-                popup_desc: 'Quick preliminary analysis completed. Enter your email to view the detailed technical report.',
-                popup_primary: '🚀 Unlock Detailed Report',
-                trust_line: 'Free Analysis • No Spam • Powered by WebFine',
-                badge_critical: 'IMPORTANT',
-                issues_modal_title: 'Detected Improvement Opportunities',
-                support_title: 'Professional Support',
-                support_desc: 'We can fix these technical issues for you. Contact the WebFine team.',
-                support_btn: 'Get a Quote',
-                analyzing: 'Analyzing...',
-                saving: 'Verifying...',
-                not_found: 'Great! No serious issues were detected. 🎉',
-                loading_messages: [
-                    "🧠 AI is analyzing your site structure...",
-                    "🔍 Checking meta tags and heading structure...",
-                    "⚙️ Detecting technical SEO issues...",
-                    "📊 Measuring performance and speed metrics...",
-                    "🛠 Verifying indexing and redirects...",
-                    "🚀 Generating detailed report..."
-                ]
-            }
-        };
-
         let currentLang = 'tr';
         let fullReportData = null;
         let isLeadCaptured = false;
 
-        function setLanguage(lang) {
-            currentLang = lang;
-            document.documentElement.lang = lang;
+        // DEFAULT LABELS (Turkish) - Ensures the button works even if fetch fails
+        let labels = {
+            hero_title: 'Web Sitenizin <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Gerçek Gücünü</span> Keşfedin',
+            hero_subtitle: "Yapay zeka destekli altyapımız ile saniyeler içinde kapsamlı SEO ve performans analizi yapın.",
+            btn_analyze: "<span>⚡</span> Ücretsiz Analiz Et",
+            score_label: "GENEL SKOR",
+            pages_label: "Taranan Sayfa",
+            speed_label: "Ort. Hız",
+            issues_label: "İyileştirme Önerisi",
+            details_label: "Sayfa Detayları",
+            popup_title: "Detaylı SEO Raporunuz Hazır",
+            popup_desc: "Hızlı ön analiz tamamlandı. Detaylı teknik raporu görüntülemek için e-posta adresinizi girin.",
+            popup_primary: "🚀 Detaylı Raporu Aç",
+            trust_line: "Ücretsiz analiz • Spam yok • WebFine güvencesi",
+            badge_critical: "ÖNEMLİ",
+            issues_modal_title: "Tespit Edilen İyileştirme Fırsatları",
+            support_title: "Profesyonel Destek",
+            support_desc: "Bu teknik sorunları sizin için çözebiliriz.",
+            support_btn: "Teklif Al",
+            not_found: "Harika! Ciddi bir sorun tespit edilemedi. 🎉",
+            analyzing: "Analiz Ediliyor...",
+            saving: "Doğrulanıyor...",
+            health_critical: "Kritik",
+            health_needs_optimization: "İyileştirme Gerekli",
+            health_high_potential: "Yüksek Potansiyel",
+            loading_messages: [
+                "🧠 Yapay zeka site yapınızı analiz ediyor...",
+                "🔍 Meta etiketleri ve başlık yapısı inceleniyor...",
+                "⚙️ Teknik SEO hataları tespit ediliyor...",
+                "📊 Performans ve hız metrikleri ölçülüyor...",
+                "🛠 İndeksleme ve yönlendirmeler kontrol ediliyor...",
+                "🚀 Detaylı rapor oluşturuluyor..."
+            ]
+        };
 
-            // UI Updates
-            document.getElementById('t-hero-title').innerHTML = translations[lang].hero_title;
-            document.getElementById('t-hero-subtitle').innerText = translations[lang].hero_subtitle;
-            document.getElementById('t-btn-analyze').innerHTML = translations[lang].btn_analyze;
-            document.getElementById('t-score-label').innerText = translations[lang].score_label;
-            document.getElementById('t-pages-label').innerText = translations[lang].pages_label;
-            document.getElementById('t-speed-label').innerText = translations[lang].speed_label;
-            document.getElementById('t-issues-label').innerText = translations[lang].issues_label;
-            document.getElementById('t-details-label').innerText = translations[lang].details_label;
-            document.getElementById('t-popup-title').innerText = translations[lang].popup_title;
-            document.getElementById('t-popup-desc').innerText = translations[lang].popup_desc;
-            document.getElementById('t-popup-primary').innerText = translations[lang].popup_primary;
-            document.getElementById('t-trust-line').innerText = translations[lang].trust_line;
-            document.getElementById('t-badge-critical').innerText = translations[lang].badge_critical;
-            document.getElementById('t-issues-modal-title').innerText = translations[lang].issues_modal_title;
-            document.getElementById('t-support-title').innerText = translations[lang].support_title;
-            document.getElementById('t-support-desc').innerText = translations[lang].support_desc;
-            document.getElementById('t-support-btn').innerText = translations[lang].support_btn;
+        async function fetchLocale(lang) {
+            try {
+                const res = await fetch(`/api/locales/${lang}`);
+                if (!res.ok) throw new Error('API locale failed');
+                const newLabels = await res.json();
+                labels = { ...labels, ...newLabels };
+                applyLabels();
+            } catch (err) {
+                console.warn('Backend locales not ready, using defaults', err);
+                applyLabels(); // Still apply what we have
+            }
+        }
+
+        function applyLabels() {
+            if (!labels.hero_title) return;
+
+            document.getElementById('t-hero-title').innerHTML = labels.hero_title;
+            document.getElementById('t-hero-subtitle').innerText = labels.hero_subtitle;
+            document.getElementById('t-btn-analyze').innerHTML = labels.btn_analyze;
+            document.getElementById('t-score-label').innerText = labels.score_label;
+            document.getElementById('t-pages-label').innerText = labels.pages_label;
+            document.getElementById('t-speed-label').innerText = labels.speed_label;
+            document.getElementById('t-issues-label').innerText = labels.issues_label;
+            document.getElementById('t-details-label').innerText = labels.details_label;
+            document.getElementById('t-popup-title').innerText = labels.popup_title;
+            document.getElementById('t-popup-desc').innerText = labels.popup_desc;
+            document.getElementById('t-popup-primary').innerText = labels.popup_primary;
+            document.getElementById('t-trust-line').innerText = labels.trust_line;
+            document.getElementById('t-badge-critical').innerText = labels.badge_critical;
+            document.getElementById('t-issues-modal-title').innerText = labels.issues_modal_title;
+            document.getElementById('t-support-title').innerText = labels.support_title;
+            document.getElementById('t-support-desc').innerText = labels.support_desc;
+            document.getElementById('t-support-btn').innerText = labels.support_btn;
 
             // Update Active Lang Buttons
-            document.getElementById('lang-tr').className = lang === 'tr' ? 'px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-blue-600' : 'px-3 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-600';
-            document.getElementById('lang-en').className = lang === 'en' ? 'px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-blue-600' : 'px-3 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-600';
+            document.getElementById('lang-tr').className = currentLang === 'tr' ? 'px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-blue-600' : 'px-3 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-600';
+            document.getElementById('lang-en').className = currentLang === 'en' ? 'px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-blue-600' : 'px-3 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-600';
 
             if (fullReportData) updateUI(fullReportData);
         }
 
+        async function setLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            await fetchLocale(lang);
+        }
+
+        // URL Normalization for better UX
+        document.getElementById('urlInput').addEventListener('blur', (e) => {
+            let val = e.target.value.trim();
+            if (val && !val.startsWith('http')) {
+                e.target.value = 'https://' + val;
+            }
+        });
+
         // Initialize Lang
         setLanguage('tr');
+
+        // Handle Query Parameters (from widget/external)
+        window.addEventListener('load', () => {
+            const params = new URLSearchParams(window.location.search);
+            const queryUrl = params.get('url');
+            const queryLang = params.get('lang');
+
+            if (queryLang && (queryLang === 'tr' || queryLang === 'en')) {
+                setLanguage(queryLang);
+            }
+
+            if (queryUrl) {
+                document.getElementById('urlInput').value = queryUrl;
+                // Optional: Auto-start audit if Turnstile is not required immediately
+                // For now, just pre-fill to avoid bot-spam.
+            }
+        });
 
         // Prevent ESC key from closing modal
         window.addEventListener('keydown', (e) => {
@@ -428,7 +442,7 @@
         let loadingInterval;
         async function openModal(e) {
             e.preventDefault();
-            const url = document.getElementById('urlInput').value;
+            const url = document.getElementById('urlInput').value.trim();
             const submitBtn = document.getElementById('t-btn-analyze');
             const originalBtnText = submitBtn.innerHTML;
 
@@ -436,7 +450,7 @@
 
             // Start dynamic loading messages
             let msgIndex = 0;
-            const msgs = translations[currentLang].loading_messages;
+            const msgs = labels.loading_messages || [labels.analyzing];
 
             const updateBtnLoading = () => {
                 submitBtn.innerHTML = `
@@ -458,10 +472,24 @@
             loadingInterval = setInterval(updateBtnLoading, 2800);
 
             try {
+                // Get Turnstile token
+                let turnstileToken = '';
+                try {
+                    if (typeof turnstile !== 'undefined') {
+                        turnstileToken = turnstile.getResponse();
+                    } else if (typeof grecaptcha !== 'undefined' && grecaptcha.getResponse) {
+                        turnstileToken = grecaptcha.getResponse();
+                    }
+                } catch (e) { }
+
+                if (!turnstileToken) {
+                    turnstileToken = document.querySelector('[name="cf-turnstile-response"]')?.value || 'mock-token';
+                }
+
                 const res = await fetch('/api/audit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url, turnstileToken: 'mock-token', lang: currentLang })
+                    body: JSON.stringify({ url, turnstileToken, lang: currentLang })
                 });
 
                 const data = await res.json();
@@ -493,12 +521,22 @@
         async function handleAudit(e) {
             e.preventDefault();
             const btn = document.getElementById('t-popup-primary');
-            const email = document.getElementById('emailInput').value.trim();
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
 
-            if (!email || !email.includes('@')) return;
+            if (!email || !email.includes('@')) {
+                emailInput.classList.add('ring-red-500');
+                return;
+            }
 
+            if (!fullReportData) {
+                alert("Report data missing. Please refresh.");
+                return;
+            }
+
+            const originalBtnText = btn.innerText;
             btn.disabled = true;
-            btn.innerText = translations[currentLang].saving;
+            btn.innerText = labels.saving || "Verifying...";
 
             try {
                 const res = await fetch('/api/lead', {
@@ -536,7 +574,7 @@
             } catch (err) {
                 alert(err.message);
                 btn.disabled = false;
-                btn.innerText = translations[currentLang].popup_primary;
+                btn.innerText = originalBtnText || labels.popup_primary;
             }
         }
 
@@ -550,8 +588,9 @@
 
             // Health Badge
             const badge = document.getElementById('healthBadge');
-            badge.innerText = r.healthLevel || "Needs Optimization";
-            badge.className = `mb-4 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${r.healthLevel === 'Critical' ? 'bg-rose-100 text-rose-600' : r.healthLevel === 'Needs Optimization' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`;
+            let healthKey = score < 60 ? 'health_critical' : score < 80 ? 'health_needs_optimization' : 'health_high_potential';
+            badge.innerText = labels[healthKey] || r.healthLevel || "Audit Result";
+            badge.className = `mb-4 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${score < 60 ? 'bg-rose-100 text-rose-600' : score < 80 ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`;
 
             setTimeout(() => {
                 circle.style.setProperty('--percent', score + '%');
@@ -575,7 +614,10 @@
                 placeholder.classList.remove('hidden');
             }
 
-            setTimeout(() => section.scrollIntoView({ behavior: 'smooth' }), 300);
+            setTimeout(() => {
+                const target = isLeadCaptured ? document.getElementById('fullReportContainer') : section;
+                target.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
         }
 
         function renderFullReport(report) {
@@ -637,7 +679,7 @@
                 }
             });
 
-            if (!issuesFound) list.innerHTML = `<div class="text-center py-10 text-slate-500">${translations[currentLang].not_found}</div>`;
+            if (!issuesFound) list.innerHTML = `<div class="text-center py-10 text-slate-500">${labels.not_found}</div>`;
             modal.classList.remove('hidden');
         }
 

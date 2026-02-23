@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebFine SEO Widget</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: transparent;
+            overflow: hidden;
+        }
+
+        .widget-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+    </style>
+</head>
+
+<body class="p-2">
+    <div class="widget-card rounded-xl p-4 shadow-sm max-w-sm mx-auto">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">WF
+            </div>
+            <h3 class="text-sm font-bold text-slate-800" id="t-widget-title">Ücretsiz SEO Analizi</h3>
+        </div>
+        <form onsubmit="redirectToTool(event)" class="space-y-3">
+            <input type="url" id="urlInput" placeholder="https://siteniz.com" required
+                class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+            <button type="submit"
+                class="w-full btn-gradient text-white py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+                <span id="t-btn-text">Analiz Et</span>
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+            </button>
+        </form>
+        <p class="mt-3 text-[10px] text-slate-400 text-center" id="t-trust-line">Powered by WebFine • 8 Sayfa Ücretsiz
+        </p>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const lang = urlParams.get('lang') || 'tr';
+
+        const i18n = {
+            tr: {
+                title: "Ücretsiz SEO Analizi",
+                btn: "Hemen Analiz Et",
+                trust: "WebFine Güvencesiyle • Ücretsiz",
+                placeholder: "https://alanadi.com"
+            },
+            en: {
+                title: "Free SEO Audit",
+                btn: "Audit Now",
+                trust: "Powered by WebFine • Free",
+                placeholder: "https://yourdomain.com"
+            }
+        };
+
+        const current = i18n[lang] || i18n.tr;
+        document.getElementById('t-widget-title').innerText = current.title;
+        document.getElementById('t-btn-text').innerText = current.btn;
+        document.getElementById('t-trust-line').innerText = current.trust;
+        document.getElementById('urlInput').placeholder = current.placeholder;
+
+        function redirectToTool(e) {
+            e.preventDefault();
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) return;
+
+            // Redirect parent page to the full tool with the URL pre-filled
+            // Or open in a new tab
+            const toolUrl = `${window.location.protocol}//${window.location.host}/?url=${encodeURIComponent(url)}&lang=${lang}`;
+            window.parent.location.href = toolUrl;
+        }
+    </script>
+</body>
+
+</html>

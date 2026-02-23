@@ -53,6 +53,24 @@ function isIpPrivate(ipString: string): boolean {
     }
 }
 
+// Global Concurrency Tracker
+let activeAudits = 0;
+const MAX_CONCURRENT_AUDITS = process.env.MAX_CONCURRENT_AUDITS ? parseInt(process.env.MAX_CONCURRENT_AUDITS) : 2;
+
+export function getConcurrencyStatus() {
+    return { active: activeAudits, max: MAX_CONCURRENT_AUDITS };
+}
+
+export function incrementAudits(): boolean {
+    if (activeAudits >= MAX_CONCURRENT_AUDITS) return false;
+    activeAudits++;
+    return true;
+}
+
+export function decrementAudits() {
+    activeAudits = Math.max(0, activeAudits - 1);
+}
+
 export async function checkSSRF(url: string, lang: string = 'en'): Promise<string> {
     let parsed: URL;
     try {
@@ -61,7 +79,7 @@ export async function checkSSRF(url: string, lang: string = 'en'): Promise<strin
         throw new Error(getMessage(lang, 'invalid_url'));
     }
 
-    // 1. Protocol check
+    // 1. Protocol check (Strictly http/https)
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
         throw new Error(getMessage(lang, 'invalid_url'));
     }
@@ -73,13 +91,16 @@ export async function checkSSRF(url: string, lang: string = 'en'): Promise<strin
     }
 
     // 3. Static hostname check
-    if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+    const hostname = parsed.hostname.toLowerCase();
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') {
         throw new Error(getMessage(lang, 'blocked_ssrf'));
     }
 
     // 4. DNS Resolution & IP check (DNS Rebinding protection)
     try {
         const lookup = await dns.lookup(parsed.hostname, { all: true });
+        if (!lookup.length) throw new Error(getMessage(lang, 'invalid_url'));
+
         for (const entry of lookup) {
             if (isIpPrivate(entry.address)) {
                 throw new Error(getMessage(lang, 'blocked_ssrf'));
@@ -93,35 +114,69 @@ export async function checkSSRF(url: string, lang: string = 'en'): Promise<strin
     }
 }
 
-// Turnstile Verification
+// In-memory token cache to prevent replay (since we have no DB)
+const tokenCache = new Set<string>();
+const MAX_TOKEN_CACHE = 1000;
+const TOKEN_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+// Turnstile Verification with Retry Logic & Replay Protection
 export async function verifyTurnstile(token: string, ip: string, lang: string = 'en'): Promise<void> {
-    if (token === 'mock-token') {
-        console.warn('⚠️ Using Mock Turnstile Token');
-        return;
-    }
-
     const secret = process.env.TURNSTILE_SECRET_KEY;
-    if (!secret) {
-        console.warn('TURNSTILE_SECRET_KEY not set. Falling back to success (UNSAFE).');
+
+    // ALLOW MOCK IN DEV
+    if (process.env.NODE_ENV !== 'production' && (token === 'mock-token' || !secret)) {
+        console.warn('⚠️ Turnstile using mock/skip (Dev Mode)');
         return;
     }
 
-    try {
-        const formData = new URLSearchParams();
-        formData.append('secret', secret);
-        formData.append('response', token);
-        formData.append('remoteip', ip);
+    if (!secret) {
+        const err = new Error('Turnstile Secret Key missing');
+        console.error(err);
+        throw new Error(getMessage(lang, 'server_error'));
+    }
 
-        const res = await axios.post('https://challenges.cloudflare.com/turnstile/v0/siteverify', formData, {
-            timeout: 5000
-        });
-
-        if (!res.data.success) {
-            throw new Error(getMessage(lang, 'turnstile_failed'));
-        }
-    } catch (err) {
-        console.error('Turnstile verification error:', err);
+    if (!token || token === 'undefined') {
         throw new Error(getMessage(lang, 'turnstile_failed'));
     }
+
+    // Replay Protection (In-memory)
+    if (tokenCache.has(token)) {
+        throw new Error(getMessage(lang, 'turnstile_failed'));
+    }
+
+    let retries = 1;
+    let lastError: any = null;
+
+    while (retries >= 0) {
+        try {
+            const formData = new URLSearchParams();
+            formData.append('secret', secret);
+            formData.append('response', token);
+            formData.append('remoteip', ip);
+
+            const res = await axios.post('https://challenges.cloudflare.com/turnstile/v0/siteverify', formData, {
+                timeout: 3000 // Tight timeout for performance
+            });
+
+            if (res.data.success) {
+                // Add to cache
+                tokenCache.add(token);
+                if (tokenCache.size > MAX_TOKEN_CACHE) tokenCache.clear();
+                setTimeout(() => tokenCache.delete(token), TOKEN_TTL_MS);
+                return;
+            }
+
+            console.warn('Turnstile verify failed:', res.data['error-codes']);
+            throw new Error(getMessage(lang, 'turnstile_failed'));
+        } catch (err: any) {
+            lastError = err;
+            if (retries > 0) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+            retries--;
+        }
+    }
+
+    throw lastError || new Error(getMessage(lang, 'turnstile_failed'));
 }
 

@@ -1,10 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { verifyTurnstile, checkSSRF } from '../lib/security';
+import { verifyTurnstile, checkSSRF, incrementAudits, decrementAudits } from '../lib/security';
 import { Crawler } from '../lib/crawler';
 import { sendTelegramReport } from '../lib/telegram';
 import { getMessage } from '../lib/i18n';
-import fs from 'fs';
+import { logAudit } from '../lib/logger';
 import path from 'path';
 
 const AuditSchema = z.object({
@@ -35,26 +35,10 @@ function isDisposableEmail(email: string): boolean {
     return DISPOSABLE_DOMAINS.some(d => domain === d || domain.endsWith('.' + d));
 }
 
-function getHealthLevel(score: number): string {
-    if (score < 60) return "Critical";
-    if (score < 80) return "Needs Optimization";
-    return "High Potential";
-}
-
-function logAudit(data: any) {
-    const logDir = path.join(__dirname, '../../logs');
-    if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
-
-    const date = new Date().toISOString().split('T')[0];
-    const logFile = path.join(logDir, `audits-${date}.jsonl`);
-
-    const logEntry = JSON.stringify({
-        timestamp: new Date().toISOString(),
-        ...data,
-        email: data.email ? '***masked***' : undefined
-    }) + '\n';
-
-    fs.appendFileSync(logFile, logEntry);
+function getHealthLevel(score: number, lang: string): string {
+    if (score < 60) return getMessage(lang, 'health_critical');
+    if (score < 80) return getMessage(lang, 'health_needs_optimization');
+    return getMessage(lang, 'health_high_potential');
 }
 
 export async function auditRoutes(fastify: FastifyInstance) {
@@ -62,7 +46,7 @@ export async function auditRoutes(fastify: FastifyInstance) {
     fastify.post('/audit', {
         config: {
             rateLimit: {
-                max: 10,
+                max: 5, // Reduced for weak server
                 timeWindow: '10 minutes'
             }
         }
@@ -71,55 +55,68 @@ export async function auditRoutes(fastify: FastifyInstance) {
             const body = AuditSchema.parse(req.body);
             const ip = req.ip;
 
-            // 1. Verify Turnstile
-            await verifyTurnstile(body.turnstileToken, ip, body.lang);
+            // 1. Concurrency Check (Protect Server Load)
+            if (!incrementAudits()) {
+                return reply.status(503).send({
+                    success: false,
+                    message: getMessage(body.lang, 'rate_limited')
+                });
+            }
 
-            // 2. SSRF Check & Get Safe IP
-            await checkSSRF(body.url, body.lang);
+            try {
+                // 2. Verify Turnstile
+                await verifyTurnstile(body.turnstileToken, ip, body.lang);
 
-            // 3. Start Quick Audit (v4.1 Defaults)
-            const crawler = new Crawler({
-                maxDepth: 1,      // Requirement: maxDepth 1
-                maxPages: 8,      // Requirement: maxPages 8
-                concurrency: 2,   // Requirement: concurrency 2
-                timeoutMs: 9000,  // Requirement: timeoutPerPageMs 9000
-                maxHtmlSize: 2000000, // Requirement: maxHtmlBytes 2000000
-            });
+                // 3. SSRF Check & Get Safe IP
+                await checkSSRF(body.url, body.lang);
 
-            const results = await crawler.start(body.url);
+                // 4. Start Quick Audit
+                const crawler = new Crawler({
+                    maxDepth: 1,
+                    maxPages: 8,
+                    concurrency: 2,
+                    timeoutMs: 9000,
+                    maxHtmlSize: 2000000,
+                });
 
-            const totalScore = Math.round(results.reduce((acc, r) => acc + r.score, 0) / (results.length || 1));
-            const totalErrors = results.reduce((acc, r) => acc + r.issues.filter(i => i.type === 'error').length, 0);
-            const totalWarnings = results.reduce((acc, r) => acc + r.issues.filter(i => i.type === 'warning').length, 0);
-            const totalDuration = results.reduce((a, b) => a + b.durationMs, 0);
-            const site = new URL(body.url).hostname;
+                const results = await crawler.start(body.url);
 
-            logAudit({ site, score: totalScore, duration: totalDuration, ip });
+                const totalScore = Math.round(results.reduce((acc: number, r: any) => acc + r.score, 0) / (results.length || 1));
+                const totalErrors = results.reduce((acc: number, r: any) => acc + r.issues.filter((i: any) => i.type === 'error').length, 0);
+                const totalWarnings = results.reduce((acc: number, r: any) => acc + r.issues.filter((i: any) => i.type === 'warning').length, 0);
+                const totalDuration = results.reduce((a: number, b: any) => a + b.durationMs, 0);
+                const site = new URL(body.url).hostname;
+                const healthLevel = getHealthLevel(totalScore, body.lang);
 
-            return {
-                success: true,
-                site,
-                score: totalScore,
-                healthLevel: getHealthLevel(totalScore),
-                summary: {
-                    errors: totalErrors,
-                    warnings: totalWarnings,
-                    info: results.reduce((acc, r) => acc + r.issues.filter(i => i.type === 'info').length, 0)
-                },
-                pagesAudited: results.length,
-                durationMs: totalDuration,
-                preview: {
-                    topIssues: results.flatMap(r => r.issues).filter(i => i.type === 'error').slice(0, 5)
-                },
-                report: results // Full report sent to client, client handles gate
-            };
+                logAudit({ site, score: totalScore, duration: totalDuration, ip });
+
+                return {
+                    success: true,
+                    site,
+                    score: totalScore,
+                    healthLevel,
+                    summary: {
+                        errors: totalErrors,
+                        warnings: totalWarnings,
+                        info: results.reduce((acc: number, r: any) => acc + r.issues.filter((i: any) => i.type === 'info').length, 0)
+                    },
+                    pagesAudited: results.length,
+                    durationMs: totalDuration,
+                    preview: {
+                        topIssues: results.flatMap((r: any) => r.issues).filter((i: any) => i.type === 'error').slice(0, 5)
+                    },
+                    report: results
+                };
+            } finally {
+                decrementAudits();
+            }
 
         } catch (err: any) {
             req.log.error(err);
             if (err instanceof z.ZodError) {
                 return reply.status(400).send({ success: false, message: 'Invalid input', errors: err.issues });
             }
-            return reply.status(err.status || 400).send({ success: false, message: err.message || 'Internal Server Error' });
+            return reply.status(err.status || 400).send({ success: false, message: err.message || 'Error' });
         }
     });
 
@@ -168,5 +165,10 @@ export async function auditRoutes(fastify: FastifyInstance) {
     fastify.get('/health', async () => {
         return { status: 'ok', version: '4.1.0', timestamp: new Date().toISOString() };
     });
-}
 
+    fastify.get('/locales/:lang', async (req) => {
+        const { lang } = req.params as { lang: string };
+        const { locales } = require('../lib/i18n');
+        return locales[lang] || locales['en'];
+    });
+}

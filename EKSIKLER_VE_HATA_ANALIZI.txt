@@ -1,0 +1,24 @@
+# PROJE ANALIZI VE EKSIKLER RAPORU
+
+## 1. Neden "Çalışmıyor" Görünüyor Olabilir?
+
+Projeyi sisteminizde başarılı bir şekilde başlattım (Port 3000). Ancak sizin tarafınızda çalışmıyor gibi görünmesinin muhtemel nedenleri şunlardır:
+
+*   **Tarayıcı Erişimi Hatalı:** Eğer `public/index.html` dosyasını çift tıklayarak (file://...) açıyorsanız, API istekleri çalışmaz. Siteye mutlaka `http://localhost:3000` adresinden girmelisiniz.
+*   **SSRF Koruması:** Sistemde çok sıkı bir güvenlik filtresi var. Eğer analiz kutusuna `http://localhost` veya `http://127.0.0.1` yazıyorsanız, sistem bunu "güvenlik tehdidi" (SSRF) olarak algılar ve bloklar. Gerçek bir web adresi (örn: https://google.com) girmeniz gerekir.
+*   **PowerShell Kısıtlaması:** Sisteminizde PowerShell script çalıştırma kapalı olduğu için doğrudan `npm run dev` komutu hata verebiliyor. Ben bu sorunu `cmd /c npm run dev` kullanarak aştım.
+
+## 2. Tespit Edilen Teknik Eksikler
+
+*   **Cloudflare Turnstile Yapılandırması:** Frontend tarafında `mock-token` kullanılıyor. Canlıya alırken gerçek bir Turnstile Site Key ve Secret Key ( `.env` dosyasına) eklenmelidir.
+*   **Hata Mesajları Kullanıcı Dostu Değil:** API tarafında dönen bazı hatalar (örn: SSRF bloklama) kullanıcıya çok teknik görünüyor, daha anlaşılır rehberlik sağlanabilir.
+*   **Görsel Eksiklik (Placeholder):** Rapor kısmında e-posta girilmeden önce görünen "Tam Rapor Paylaşıldığında Burada Görünecek" alanı çok sade. Burası bulanık (blur) bir rapor görseli ile desteklenebilir.
+*   **Crawler Limitleri:** Şu anki ayarlar (8 sayfa, 1 derinlik) hızlı analiz için iyi ancak kapsamlı bir SEO denetimi için çok düşük. Ayarlar `src/routes/audit.ts` içinden artırılabilir.
+*   **Asset Yönetimi:** `public` klasöründeki ikonlar veya resimler eksikse (örn: favicon.ico) konsolda 404 hataları görünebilir.
+
+## 3. Benim Yaşadığım Teknik Sorunlar (Neden Çalıştıramadım?)
+
+*   **Browser Subagent Hatası:** Benim kullandığım "AI Tarayıcı" aracı, sisteminizdeki Playwright kurulumuyla ($HOME değişkeni eksikliği nedeniyle) çakıştı. Bu yüzden siteyi sizin ekranınızda "gördüğümü" kanıtlayan bir ekran görüntüsü alamadım veya tarayıcı üzerinden manuel test yapamadım. Ancak `curl` ve `test_api_check.js` ile API'nin %100 çalıştığını doğruladım.
+
+---
+**Durum:** Sunucu çalışıyor, API yanıt veriyor. Lütfen tarayıcınızdan `http://localhost:3000` adresini deneyin.

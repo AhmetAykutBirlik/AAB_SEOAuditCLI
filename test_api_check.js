@@ -7,11 +7,11 @@ async function test() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         url: 'https://example.com',
-        token: 'mock-token',
+        turnstileToken: 'mock-token',
         lang: 'tr'
       })
     });
-    
+
     console.log('Status:', res.status);
     const text = await res.text();
     console.log('Body:', text.substring(0, 500)); // Print first 500 chars

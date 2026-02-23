@@ -10,20 +10,37 @@ export const locales = {
         method_not_allowed: "Yöntem izin verilmiyor.",
         lead_saved: "Bilgileriniz kaydedildi. Detaylı rapor hazır.",
         popup_title: "Detaylı SEO Raporunuz Hazır",
-        popup_desc: "Yapay zeka destekli analiz tamamlandı. Raporun bir kopyasını e-posta adresinize gönderebiliriz (opsiyonel).",
-        popup_primary: "Detaylı Raporu Aç",
+        popup_desc: "Hızlı ön analiz tamamlandı. Detaylı teknik raporu görüntülemek için e-posta adresinizi girin.",
+        popup_primary: "🚀 Detaylı Raporu Aç",
         popup_secondary: "E-posta girmeden devam et",
-        hero_title: "Web Sitenizin Gerçek Gücünü Keşfedin",
-        hero_subtitle: "Yapay zeka destekli altyapımız ile saniyeler içinde kapsamlı SEO analizi yapın.",
-        btn_analyze: "Ücretsiz Analiz Et",
+        hero_title: 'Web Sitenizin <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Gerçek Gücünü</span> Keşfedin',
+        hero_subtitle: "Yapay zeka destekli altyapımız ile saniyeler içinde kapsamlı SEO ve performans analizi yapın.",
+        btn_analyze: "<span>⚡</span> Ücretsiz Analiz Et",
         score_label: "GENEL SKOR",
         pages_label: "Taranan Sayfa",
         speed_label: "Ort. Hız",
         issues_label: "İyileştirme Önerisi",
         details_label: "Sayfa Detayları",
         support_title: "Profesyonel Destek",
-        support_desc: "Bu sorunları sizin için çözebiliriz.",
-        support_btn: "Teklif Al"
+        support_desc: "Bu teknik sorunları sizin için çözebiliriz. WebFine ekibiyle iletişime geçin.",
+        support_btn: "Teklif Al",
+        trust_line: "Ücretsiz analiz • Spam yok • WebFine güvencesi",
+        badge_critical: "ÖNEMLİ",
+        issues_modal_title: "Tespit Edilen İyileştirme Fırsatları",
+        analyzing: "Analiz Ediliyor...",
+        saving: "Doğrulanıyor...",
+        not_found: "Harika! Ciddi bir sorun tespit edilemedi. 🎉",
+        health_critical: "Kritik",
+        health_needs_optimization: "İyileştirme Gerekli",
+        health_high_potential: "Yüksek Potansiyel",
+        loading_messages: [
+            "🧠 Yapay zeka site yapınızı analiz ediyor...",
+            "🔍 Meta etiketleri ve başlık yapısı inceleniyor...",
+            "⚙️ Teknik SEO hataları tespit ediliyor...",
+            "📊 Performans ve hız metrikleri ölçülüyor...",
+            "🛠 İndeksleme ve yönlendirmeler kontrol ediliyor...",
+            "🚀 Detaylı rapor oluşturuluyor..."
+        ]
     },
     en: {
         turnstile_failed: "Verification failed. Please try again.",
@@ -35,27 +52,45 @@ export const locales = {
         server_error: "Internal server error.",
         method_not_allowed: "Method not allowed.",
         lead_saved: "Your lead info saved. Full report is ready.",
-        popup_title: "Your Detailed SEO Report is Ready",
-        popup_desc: "AI-powered analysis completed. You may receive a copy via email (optional).",
-        popup_primary: "Open Full Report",
+        popup_title: "Detailed SEO Report Ready",
+        popup_desc: "Quick preliminary analysis completed. Enter your email to view the detailed technical report.",
+        popup_primary: "🚀 Unlock Detailed Report",
         popup_secondary: "Continue without email",
-        hero_title: "Discover the True Power of Your Website",
-        hero_subtitle: "Perform comprehensive SEO analysis in seconds with our AI-powered infrastructure.",
-        btn_analyze: "Analyze for Free",
+        hero_title: 'Discover the <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">True Power</span> of Your Website',
+        hero_subtitle: "Perform comprehensive SEO and performance analysis in seconds with our AI-powered infrastructure.",
+        btn_analyze: "<span>⚡</span> Analyze for Free",
         score_label: "OVERALL SCORE",
         pages_label: "Pages Audited",
         speed_label: "Avg. Speed",
         issues_label: "Improvements",
         details_label: "Page Details",
         support_title: "Professional Support",
-        support_desc: "We can fix these issues for you.",
-        support_btn: "Get a Quote"
+        support_desc: "We can fix these technical issues for you. Contact the WebFine team.",
+        support_btn: "Get a Quote",
+        trust_line: "Free Analysis • No Spam • Powered by WebFine",
+        badge_critical: "IMPORTANT",
+        issues_modal_title: "Detected Improvement Opportunities",
+        analyzing: "Analyzing...",
+        saving: "Verifying...",
+        not_found: "Great! No serious issues were detected. 🎉",
+        health_critical: "Critical",
+        health_needs_optimization: "Needs Optimization",
+        health_high_potential: "High Potential",
+        loading_messages: [
+            "🧠 AI is analyzing your site structure...",
+            "🔍 Checking meta tags and heading structure...",
+            "⚙️ Detecting technical SEO issues...",
+            "📊 Measuring performance and speed metrics...",
+            "🛠 Verifying indexing and redirects...",
+            "🚀 Generating detailed report..."
+        ]
     },
 };
 
 export type Locale = keyof typeof locales;
+export type MessageKey = keyof typeof locales['en'];
 
-export function getMessage(lang: string, key: keyof typeof locales['en']): string {
+export function getMessage(lang: string, key: MessageKey): any {
     const locale = (lang === 'tr' || lang === 'en') ? lang : 'en';
     return locales[locale][key] || locales['en'][key];
 }
