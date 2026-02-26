@@ -601,6 +601,10 @@
             document.getElementById('totalPages').innerText = r.pagesAudited;
             document.getElementById('improvements').innerText = r.summary.errors + r.summary.warnings;
 
+            // Dynamic Speed update
+            const avgSpeed = (r.durationMs / (r.pagesAudited || 1) / 1000).toFixed(2);
+            document.getElementById('t-speed-val').innerText = `~${avgSpeed}s`;
+
             // Report visibility
             const reportContainer = document.getElementById('fullReportContainer');
             const placeholder = document.getElementById('reportPlaceholder');

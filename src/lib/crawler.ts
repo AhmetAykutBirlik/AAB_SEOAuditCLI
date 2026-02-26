@@ -98,17 +98,27 @@ export class Crawler {
         let score = 100;
 
         try {
-            // Head request check for content-type (Skip non-HTML)
-            const head = await axios.head(url, {
-                headers: { 'User-Agent': USER_AGENT },
-                timeout: 5000,
-                httpsAgent: httpsAgent,
-                validateStatus: () => true
-            });
+            // 1. Optional Head request check for content-type (Skip non-HTML if we can be sure)
+            let skipHead = false;
+            try {
+                const head = await axios.head(url, {
+                    headers: { 'User-Agent': USER_AGENT },
+                    timeout: 4000,
+                    httpsAgent: httpsAgent,
+                    validateStatus: () => true
+                });
 
-            const contentType = head.headers['content-type'] || '';
-            if (!contentType.includes('text/html')) {
-                return; // Skip non-HTML
+                const contentType = head.headers['content-type'] || '';
+                if (contentType && !contentType.includes('text/html') && !contentType.includes('application/xhtml+xml')) {
+                    // Only skip if we are SURE it's not HTML (e.g. image/png)
+                    const skipTypes = ['image/', 'video/', 'audio/', 'application/pdf', 'application/zip'];
+                    if (skipTypes.some(t => contentType.includes(t))) {
+                        return;
+                    }
+                }
+            } catch (e) {
+                // If HEAD fails, we don't return, we try GET anyway
+                skipHead = true;
             }
 
             const res = await axios.get(url, {

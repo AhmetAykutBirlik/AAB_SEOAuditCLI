@@ -55,6 +55,8 @@ export async function auditRoutes(fastify: FastifyInstance) {
             const body = AuditSchema.parse(req.body);
             const ip = req.ip;
 
+            console.log(`[Audit Request] URL: ${body.url}, IP: ${ip}, Lang: ${body.lang}`);
+
             // 1. Concurrency Check (Protect Server Load)
             if (!incrementAudits()) {
                 return reply.status(503).send({
@@ -73,10 +75,10 @@ export async function auditRoutes(fastify: FastifyInstance) {
                 // 4. Start Quick Audit
                 const crawler = new Crawler({
                     maxDepth: 1,
-                    maxPages: 8,
-                    concurrency: 2,
-                    timeoutMs: 9000,
-                    maxHtmlSize: 2000000,
+                    maxPages: 12, // Increased from 8 to 12
+                    concurrency: 3, // Increased from 2 to 3
+                    timeoutMs: 12000, // Increased from 9s to 12s
+                    maxHtmlSize: 3000000, // Increased from 2MB to 3MB
                 });
 
                 const results = await crawler.start(body.url);
