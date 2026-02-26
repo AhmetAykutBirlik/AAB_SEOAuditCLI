@@ -198,7 +198,13 @@ export class Crawler {
             let externalLinks = 0;
             const trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'fbclid', 'gclid', '_ga', '_gl'];
 
+            // Limit link collection to prevent memory spikes
+            const maxLinksToProcess = 100;
+            let collected = 0;
+
             $('a').each((_, el) => {
+                if (collected >= maxLinksToProcess) return;
+
                 const href = $(el).attr('href');
                 if (!href) return;
 
@@ -213,9 +219,14 @@ export class Crawler {
 
                     if (isInternal) {
                         internalLinks++;
-                        if (depth < this.options.maxDepth && !this.visited.has(absolute) && this.results.length < this.options.maxPages) {
+                        // Only add to queue if we haven't reached maxPages to avoid memory bloat
+                        if (depth < this.options.maxDepth &&
+                            !this.visited.has(absolute) &&
+                            this.visited.size < this.options.maxPages * 3) {
+
                             this.visited.add(absolute);
                             this.queue.push({ url: absolute, depth: depth + 1 });
+                            collected++;
                         }
                     } else {
                         externalLinks++;
